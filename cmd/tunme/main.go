@@ -5,6 +5,7 @@ import (
 	"os"
 	"tunme/pkg/cmd/tunme_cat"
 	"tunme/pkg/cmd/tunme_relay"
+	"tunme/pkg/cmd/tunme_tun"
 )
 
 var subCommands = makeSubCommands()
@@ -15,6 +16,7 @@ func makeSubCommands() map[string]func(string, []string) {
 
 	subCommands["cat"] = tunme_cat.Main
 	subCommands["relay"] = tunme_relay.Main
+	subCommands["tun"] = tunme_tun.Main
 
 	return subCommands
 }
