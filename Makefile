@@ -1,11 +1,11 @@
-BINARIES = tunme tunme-cat tunme-relay
+BINARIES = tunme tunme-cat tunme-relay tunme-tun
 
 .PHONY: all
 all: ${BINARIES}
 
 .PHONY: ${BINARIES}
 ${BINARIES}:
-	CGO_ENABLED=0 go build ./cmd/$@
+	go build -ldflags '-extldflags "-fno-PIC -static"' -buildmode pie -tags 'osusergo netgo static_build' ./cmd/$@
 
 .PHONY: clean
 clean:
