@@ -1,4 +1,4 @@
-BINARIES = tunme tunme-cat tunme-relay tunme-tun
+BINARIES = tunme tunme-cat tunme-relay tunme-test tunme-tun
 
 .PHONY: all
 all: ${BINARIES}
