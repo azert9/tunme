@@ -1,6 +1,7 @@
 package link
 
 import (
+	"io"
 	"net"
 )
 
@@ -13,9 +14,18 @@ type StreamDialer interface {
 	Dial() (net.Conn, error)
 }
 
-// TODO: smoother interface
-type Tunnel struct {
-	StreamListener net.Listener
-	StreamDialer   StreamDialer
-	PacketConn     net.PacketConn
+type PacketTunnel interface {
+	SendPacket(packet []byte) error
+	ReceivePacket(out []byte) (int, error)
+}
+
+type StreamTunnel interface {
+	AcceptStream() (net.Conn, error)
+	OpenStream() (net.Conn, error)
+}
+
+type Tunnel interface {
+	io.Closer
+	PacketTunnel
+	StreamTunnel
 }
