@@ -4,15 +4,15 @@ import (
 	"fmt"
 	"github.com/alexflint/go-arg"
 	"io"
-	"net"
 	"os"
 	"sync"
+	"tunme/pkg/link"
 	"tunme/pkg/tunme"
 )
 
 // TODO: option to automatically add default gateway, or perform NAT
 
-func sendPackets(dev io.Reader, conn net.PacketConn) error {
+func sendPackets(dev io.Reader, tun link.PacketTunnel) error {
 
 	buff := make([]byte, 10000) // TODO: configure
 
@@ -21,7 +21,7 @@ func sendPackets(dev io.Reader, conn net.PacketConn) error {
 		n, readErr := dev.Read(buff)
 
 		if n > 0 {
-			_, err := conn.WriteTo(buff[:n], nil)
+			err := tun.SendPacket(buff[:n])
 			if err != nil {
 				return err
 			}
@@ -33,13 +33,13 @@ func sendPackets(dev io.Reader, conn net.PacketConn) error {
 	}
 }
 
-func receivePackets(conn net.PacketConn, dev io.Writer) error {
+func receivePackets(tun link.PacketTunnel, dev io.Writer) error {
 
 	buff := make([]byte, 10000) // TODO: configure
 
 	for {
 
-		n, _, readErr := conn.ReadFrom(buff)
+		n, readErr := tun.ReceivePacket(buff)
 
 		if n > 0 {
 			_, err := dev.Write(buff[:n])
@@ -102,7 +102,7 @@ func Main(program string, args []string) {
 	waitGroup.Add(1)
 	go func() {
 		defer waitGroup.Done()
-		if err := sendPackets(dev, tunnel.PacketConn); err != nil {
+		if err := sendPackets(dev, tunnel); err != nil {
 			panic(err)
 		}
 	}()
@@ -110,7 +110,7 @@ func Main(program string, args []string) {
 	waitGroup.Add(1)
 	go func() {
 		defer waitGroup.Done()
-		if err := receivePackets(tunnel.PacketConn, dev); err != nil {
+		if err := receivePackets(tunnel, dev); err != nil {
 			panic(err)
 		}
 	}()

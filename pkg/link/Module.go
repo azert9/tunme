@@ -6,5 +6,5 @@ type NamedArg struct {
 }
 
 type Module interface {
-	Instantiate(positionalArgs []string, namedArgs []NamedArg) (*Tunnel, error)
+	Instantiate(positionalArgs []string, namedArgs []NamedArg) (Tunnel, error)
 }

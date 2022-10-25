@@ -57,7 +57,7 @@ func Main(program string, args []string) {
 	go func() {
 		defer waitGroup.Done()
 
-		conn, err := tunnel.StreamDialer.Dial()
+		conn, err := tunnel.OpenStream()
 		if err != nil {
 			panic(err)
 		}
@@ -72,7 +72,7 @@ func Main(program string, args []string) {
 	go func() {
 		defer waitGroup.Done()
 
-		conn, err := tunnel.StreamListener.Accept()
+		conn, err := tunnel.AcceptStream()
 		if err != nil {
 			panic(err)
 		}
