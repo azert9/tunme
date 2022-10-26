@@ -10,7 +10,7 @@ ${BINARIES}:
 .PHONY: clean
 clean:
 	${RM} ${BINARIES}
-	${RM} /coverage.*
+	${RM} coverage.*
 
 .PHONY: test
 test:
