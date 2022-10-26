@@ -10,3 +10,12 @@ ${BINARIES}:
 .PHONY: clean
 clean:
 	${RM} ${BINARIES}
+	${RM} /coverage.*
+
+.PHONY: test
+test:
+	go test -cover -coverprofile=coverage.cov -coverpkg=./... ./...
+
+.PHONY: coverage
+coverage: test
+	go tool cover -o coverage.html -html ./coverage.cov
