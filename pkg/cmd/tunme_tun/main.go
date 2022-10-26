@@ -12,7 +12,7 @@ import (
 
 // TODO: option to automatically add default gateway, or perform NAT
 
-func sendPackets(dev io.Reader, tun link.PacketTunnel) error {
+func sendPackets(dev io.Reader, tun link.PacketSender) error {
 
 	buff := make([]byte, 10000) // TODO: configure
 
@@ -33,7 +33,7 @@ func sendPackets(dev io.Reader, tun link.PacketTunnel) error {
 	}
 }
 
-func receivePackets(tun link.PacketTunnel, dev io.Writer) error {
+func receivePackets(tun link.PacketReceiver, dev io.Writer) error {
 
 	buff := make([]byte, 10000) // TODO: configure
 
