@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"io"
 	"sync"
+	"tunme/internal/utils"
 	"tunme/pkg/link"
-	"tunme/utils"
 )
 
 func sendPacketsRandom(tun link.PacketTunnel, quantity int) error {
