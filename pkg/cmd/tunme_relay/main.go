@@ -3,7 +3,6 @@ package tunme_relay
 import (
 	"fmt"
 	"io"
-	"net"
 	"os"
 	"sync"
 	"tunme/pkg/link"
@@ -31,9 +30,9 @@ func relayPackets(tun1 link.Tunnel, tun2 link.Tunnel) {
 	}
 }
 
-func relayStream(conn1 net.Conn, conn2 net.Conn) {
+func relayStream(conn1 io.ReadCloser, conn2 io.WriteCloser) {
 
-	defer func(conn1 net.Conn) {
+	defer func(conn1 io.ReadCloser) {
 		err := conn1.Close()
 		if err != nil {
 			fmt.Printf("error: closing stream: %v", err)
