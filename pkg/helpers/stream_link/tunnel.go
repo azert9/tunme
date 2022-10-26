@@ -3,12 +3,13 @@ package stream_link
 import (
 	"io"
 	"net"
+	"tunme/pkg/link"
 )
 
 type tunnel struct {
 	PacketConn     net.PacketConn
-	StreamListener net.Listener
-	StreamDialer   StreamDialer
+	StreamAcceptor link.StreamAcceptor
+	StreamOpener   link.StreamOpener
 }
 
 func (tun *tunnel) Close() error {
@@ -27,9 +28,9 @@ func (tun *tunnel) ReceivePacket(out []byte) (int, error) {
 }
 
 func (tun *tunnel) AcceptStream() (io.ReadWriteCloser, error) {
-	return tun.StreamListener.Accept()
+	return tun.StreamAcceptor.AcceptStream()
 }
 
 func (tun *tunnel) OpenStream() (io.ReadWriteCloser, error) {
-	return tun.StreamDialer.Dial()
+	return tun.StreamOpener.OpenStream()
 }
