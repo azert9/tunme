@@ -9,7 +9,7 @@ import (
 	"tunme/pkg/link"
 )
 
-func sendPacketsRandom(tun link.PacketTunnel, quantity int) error {
+func sendPacketsRandom(tun link.PacketSender, quantity int) error {
 
 	source := newRandomStream("payload")
 
@@ -33,7 +33,7 @@ func sendPacketsRandom(tun link.PacketTunnel, quantity int) error {
 	return nil
 }
 
-func receivePacketsRandom(in link.PacketTunnel, quantity int) error {
+func receivePacketsRandom(in link.PacketReceiver, quantity int) error {
 
 	source := newRandomStream("payload")
 
@@ -62,7 +62,7 @@ func receivePacketsRandom(in link.PacketTunnel, quantity int) error {
 	return nil
 }
 
-func testDatagrams(tun link.PacketTunnel, quantity int) {
+func testDatagrams(tun link.Tunnel, quantity int) {
 
 	var waitGroup sync.WaitGroup
 	defer waitGroup.Wait()

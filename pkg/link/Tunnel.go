@@ -4,8 +4,11 @@ import (
 	"io"
 )
 
-type PacketTunnel interface {
+type PacketSender interface {
 	SendPacket(packet []byte) error
+}
+
+type PacketReceiver interface {
 	ReceivePacket(out []byte) (int, error)
 }
 
@@ -19,7 +22,8 @@ type StreamOpener interface {
 
 type Tunnel interface {
 	io.Closer
-	PacketTunnel
+	PacketSender
+	PacketReceiver
 	StreamAcceptor
 	StreamOpener
 }
