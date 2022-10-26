@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"io"
 	"sync"
-	"tunme/utils"
+	"tunme/internal/utils"
 )
 
 func writeRandom(out io.Writer, quantity int) error {

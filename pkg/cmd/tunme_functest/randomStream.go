@@ -3,7 +3,7 @@ package tunme_functest
 import (
 	"crypto/sha1"
 	"io"
-	"tunme/utils"
+	"tunme/internal/utils"
 )
 
 type _randomStream struct {
