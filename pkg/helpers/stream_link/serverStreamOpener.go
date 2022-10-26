@@ -1,23 +1,23 @@
 package stream_link
 
 import (
-	"net"
+	"io"
 	"tunme/pkg/link"
 )
 
-type _serverStreamDialer struct {
+type _serverStreamOpener struct {
 	ControlStream controlStream
 	ConnFactory   connectionFactory
 }
 
-func newServerStreamDialer(controlStream controlStream, connFactory connectionFactory) link.StreamDialer {
-	return &_serverStreamDialer{
+func newServerStreamOpener(controlStream controlStream, connFactory connectionFactory) link.StreamOpener {
+	return &_serverStreamOpener{
 		ControlStream: controlStream,
 		ConnFactory:   connFactory,
 	}
 }
 
-func (d *_serverStreamDialer) Dial() (net.Conn, error) {
+func (d *_serverStreamOpener) OpenStream() (io.ReadWriteCloser, error) {
 
 	if err := d.ControlStream.SendStreamRequest(); err != nil {
 		return nil, err

@@ -16,8 +16,8 @@ func NewClient(dialer StreamDialer) link.Tunnel {
 	controlSteam := newControlStream(connFactory)
 
 	return &tunnel{
-		StreamListener: newClientStreamListener(controlSteam, connFactory),
-		StreamDialer:   newClientStreamDialer(connFactory),
+		StreamAcceptor: newClientStreamAcceptor(controlSteam, connFactory),
+		StreamOpener:   newClientStreamOpener(connFactory),
 		PacketConn:     newPacketConn(controlSteam),
 	}
 }

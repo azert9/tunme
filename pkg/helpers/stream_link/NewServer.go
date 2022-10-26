@@ -12,8 +12,8 @@ func NewServer(listener net.Listener) link.Tunnel {
 	controlSteam := newControlStream(connFactory)
 
 	return &tunnel{
-		StreamListener: newServerStreamListener(connFactory),
-		StreamDialer:   newServerStreamDialer(controlSteam, connFactory),
+		StreamAcceptor: newServerStreamAcceptor(connFactory),
+		StreamOpener:   newServerStreamOpener(controlSteam, connFactory),
 		PacketConn:     newPacketConn(controlSteam),
 	}
 }
