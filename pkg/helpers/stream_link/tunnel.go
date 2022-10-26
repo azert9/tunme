@@ -1,6 +1,9 @@
 package stream_link
 
-import "net"
+import (
+	"io"
+	"net"
+)
 
 type tunnel struct {
 	PacketConn     net.PacketConn
@@ -23,10 +26,10 @@ func (tun *tunnel) ReceivePacket(out []byte) (int, error) {
 	return n, err
 }
 
-func (tun *tunnel) AcceptStream() (net.Conn, error) {
+func (tun *tunnel) AcceptStream() (io.ReadWriteCloser, error) {
 	return tun.StreamListener.Accept()
 }
 
-func (tun *tunnel) OpenStream() (net.Conn, error) {
+func (tun *tunnel) OpenStream() (io.ReadWriteCloser, error) {
 	return tun.StreamDialer.Dial()
 }

@@ -20,8 +20,8 @@ type PacketTunnel interface {
 }
 
 type StreamTunnel interface {
-	AcceptStream() (net.Conn, error)
-	OpenStream() (net.Conn, error)
+	AcceptStream() (io.ReadWriteCloser, error)
+	OpenStream() (io.ReadWriteCloser, error)
 }
 
 type Tunnel interface {
