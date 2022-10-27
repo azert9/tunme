@@ -1,4 +1,4 @@
-package stream_link
+package helpers
 
 import (
 	"bytes"
@@ -32,9 +32,9 @@ func makeTestPackets() [][]byte {
 
 var testPackets = makeTestPackets()
 
-func testSinglePacket(t *testing.T, roleOrder int, packet []byte) {
+func testSinglePacket(t *testing.T, linkType int, roleOrder int, packet []byte) {
 
-	tun1, tun2 := newMockTunPair(roleOrder)
+	tun1, tun2 := newMockTunPair(linkType, roleOrder)
 
 	var waitGroup sync.WaitGroup
 	defer waitGroup.Wait()
@@ -64,13 +64,16 @@ func testSinglePacket(t *testing.T, roleOrder int, packet []byte) {
 
 func TestSinglePacket(t *testing.T) {
 
-	for roleOrder := 0; roleOrder < 2; roleOrder++ {
+	for linkType := 0; linkType < 2; linkType++ {
 
-		for packetNum := range testPackets {
+		for roleOrder := 0; roleOrder < 2; roleOrder++ {
 
-			t.Run(fmt.Sprintf("role order %d packet %d", roleOrder, packetNum), func(t *testing.T) {
-				testSinglePacket(t, roleOrder, testPackets[packetNum])
-			})
+			for packetNum := range testPackets {
+
+				t.Run(fmt.Sprintf("link type %d role order %d packet %d", linkType, roleOrder, packetNum), func(t *testing.T) {
+					testSinglePacket(t, linkType, roleOrder, testPackets[packetNum])
+				})
+			}
 		}
 	}
 }
