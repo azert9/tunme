@@ -1,4 +1,4 @@
-package stream_link
+package helpers
 
 import (
 	"bytes"
@@ -9,9 +9,9 @@ import (
 	"testing"
 )
 
-func testAcceptStream(t *testing.T, roleOrder int) {
+func testAcceptStream(t *testing.T, linkType int, roleOrder int) {
 
-	tun1, tun2 := newMockTunPair(roleOrder)
+	tun1, tun2 := newMockTunPair(linkType, roleOrder)
 
 	var waitGroup sync.WaitGroup
 	defer waitGroup.Wait()
@@ -36,16 +36,18 @@ func testAcceptStream(t *testing.T, roleOrder int) {
 
 func TestAcceptStream(t *testing.T) {
 
-	for roleOrder := 0; roleOrder < 2; roleOrder++ {
-		t.Run(fmt.Sprintf("role order %d", roleOrder), func(t *testing.T) {
-			testAcceptStream(t, roleOrder)
-		})
+	for linkType := 0; linkType < 2; linkType++ {
+		for roleOrder := 0; roleOrder < 2; roleOrder++ {
+			t.Run(fmt.Sprintf("link type %d role order %d", linkType, roleOrder), func(t *testing.T) {
+				testAcceptStream(t, linkType, roleOrder)
+			})
+		}
 	}
 }
 
-func testSendDataThroughStream(t *testing.T, roleOrder int) {
+func testSendDataThroughStream(t *testing.T, linkType int, roleOrder int) {
 
-	tun1, tun2 := newMockTunPair(roleOrder)
+	tun1, tun2 := newMockTunPair(linkType, roleOrder)
 
 	rnd := rand.New(rand.NewSource(0))
 	ref := make([]byte, 20000)
@@ -91,16 +93,18 @@ func testSendDataThroughStream(t *testing.T, roleOrder int) {
 
 func TestSendDataThroughStream(t *testing.T) {
 
-	for roleOrder := 0; roleOrder < 2; roleOrder++ {
-		t.Run(fmt.Sprintf("role order %d", roleOrder), func(t *testing.T) {
-			testSendDataThroughStream(t, roleOrder)
-		})
+	for linkType := 0; linkType < 2; linkType++ {
+		for roleOrder := 0; roleOrder < 2; roleOrder++ {
+			t.Run(fmt.Sprintf("link type %d role order %d", linkType, roleOrder), func(t *testing.T) {
+				testSendDataThroughStream(t, linkType, roleOrder)
+			})
+		}
 	}
 }
 
 func testEchoDataThroughStream(t *testing.T, roleOrder int) {
 
-	tun1, tun2 := newMockTunPair(roleOrder)
+	tun1, tun2 := newMockTunPair(0 /*TODO*/, roleOrder)
 
 	rnd := rand.New(rand.NewSource(0))
 	ref := make([]byte, 20000)
@@ -177,7 +181,7 @@ func TestEchoDataThroughStream(t *testing.T) {
 
 func testSendFragmentedDataThroughStream(t *testing.T, roleOrder int) {
 
-	tun1, tun2 := newMockTunPair(roleOrder)
+	tun1, tun2 := newMockTunPair(0 /*TODO*/, roleOrder)
 
 	rnd := rand.New(rand.NewSource(0))
 	ref := make([]byte, 20000)
@@ -246,7 +250,7 @@ func TestSendFragmentedDataThroughStream(t *testing.T) {
 
 func testStreamEof(t *testing.T, roleOrder int) {
 
-	tun1, tun2 := newMockTunPair(roleOrder)
+	tun1, tun2 := newMockTunPair(0 /*TODO*/, roleOrder)
 
 	rnd := rand.New(rand.NewSource(0))
 	ref := make([]byte, 20000)
