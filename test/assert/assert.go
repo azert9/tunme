@@ -2,6 +2,14 @@ package assert
 
 import "testing"
 
+func NotEqual[T comparable](t *testing.T, a T, b T) {
+
+	if a == b {
+		t.Logf("value match: %v == %v", a, b)
+		t.Fail()
+	}
+}
+
 func Equal[T comparable](t *testing.T, a T, b T) {
 
 	if a != b {

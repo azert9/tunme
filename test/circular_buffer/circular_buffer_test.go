@@ -1,7 +1,9 @@
 package circular_buffer
 
 import (
+	"sync"
 	"testing"
+	"time"
 	"tunme/internal/circular_buffer"
 	"tunme/test/assert"
 )
@@ -147,4 +149,35 @@ func TestReadAroundTheBuffer(t *testing.T) {
 
 	assert.NoErr(t, readErr)
 	assert.SlicesEqual(t, readBuff[:readN], sampleData1)
+}
+
+func TestBlockingRead(t *testing.T) {
+
+	var waitGroup sync.WaitGroup
+	defer waitGroup.Wait()
+
+	// Given
+
+	buff := circular_buffer.NewCircularBuffer(len(sampleData1) * 2)
+
+	// When
+
+	readBuff := make([]byte, len(sampleData1)*2)
+
+	waitGroup.Add(1)
+	go func() {
+		defer waitGroup.Done()
+		time.Sleep(200 * time.Millisecond)
+		_, _ = buff.Write(sampleData1)
+	}()
+
+	readN, readErr := buff.Read(readBuff)
+
+	// Then
+
+	assert.NoErr(t, readErr)
+
+	assert.NotEqual(t, readN, 0)
+
+	assert.SlicesEqual(t, readBuff[:readN], sampleData1[:readN])
 }
