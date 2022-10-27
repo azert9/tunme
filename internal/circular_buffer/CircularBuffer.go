@@ -9,16 +9,22 @@ import (
 var ErrNotEnoughSpaceInBuffer = errors.New("not enough space in buffer")
 
 type CircularBuffer struct {
-	_mutex sync.Mutex
-	_buff  []byte
-	_off   int
-	_len   int
+	_mutex     sync.Mutex
+	_writeCond *sync.Cond
+	_buff      []byte
+	_off       int
+	_len       int
 }
 
 func NewCircularBuffer(capacity int) *CircularBuffer {
-	return &CircularBuffer{
+
+	buff := &CircularBuffer{
 		_buff: make([]byte, capacity),
 	}
+
+	buff._writeCond = sync.NewCond(&buff._mutex)
+
+	return buff
 }
 
 func (buff *CircularBuffer) Capacity() int {
@@ -50,13 +56,23 @@ func (buff *CircularBuffer) Write(data []byte) (int, error) {
 
 	buff._len += len(data)
 
+	buff._writeCond.Signal()
+
 	return len(data), nil
 }
 
 func (buff *CircularBuffer) Read(out []byte) (int, error) {
 
+	if len(out) == 0 {
+		return 0, nil
+	}
+
 	buff._mutex.Lock()
 	defer buff._mutex.Unlock()
+
+	for buff._len == 0 {
+		buff._writeCond.Wait()
+	}
 
 	rdLen := utils.Min(buff._len, len(out))
 
