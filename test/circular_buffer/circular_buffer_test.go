@@ -119,7 +119,7 @@ func TestWriteAroundTheBuffer(t *testing.T) {
 	_, _ = buff.Write(make([]byte, len(sampleData1)))
 	_, _ = buff.Read(make([]byte, len(sampleData1)))
 
-	// Then
+	// When
 
 	writeN, writeErr := buff.Write(sampleData1)
 
@@ -138,7 +138,7 @@ func TestReadAroundTheBuffer(t *testing.T) {
 	_, _ = buff.Read(make([]byte, len(sampleData1)))
 	_, _ = buff.Write(sampleData1)
 
-	// Then
+	// When
 
 	readBuff := make([]byte, len(sampleData1)*2)
 	readN, readErr := buff.Read(readBuff)

@@ -30,8 +30,6 @@ func (buff *CircularBuffer) Write(data []byte) (int, error) {
 	buff._mutex.Lock()
 	defer buff._mutex.Unlock()
 
-	// TODO: detect wrapped writes
-
 	dataEnd := (buff._off + buff._len) % len(buff._buff)
 
 	availableSpace := len(buff._buff) - buff._len
