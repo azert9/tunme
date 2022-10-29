@@ -61,7 +61,7 @@ func (buff *CircularBuffer) Write(data []byte) (int, error) {
 	return len(data), nil
 }
 
-func (buff *CircularBuffer) Read(out []byte) (int, error) {
+func (buff *CircularBuffer) read(out []byte, consume bool) (int, error) {
 
 	if len(out) == 0 {
 		return 0, nil
@@ -85,8 +85,19 @@ func (buff *CircularBuffer) Read(out []byte) (int, error) {
 		copy(out, buff._buff[buff._off:])
 	}
 
-	buff._off = (buff._off + rdLen) % len(buff._buff)
-	buff._len -= rdLen
+	if consume {
+		buff._off = (buff._off + rdLen) % len(buff._buff)
+		buff._len -= rdLen
+	}
 
 	return rdLen, nil
+}
+
+func (buff *CircularBuffer) Read(out []byte) (int, error) {
+	return buff.read(out, true)
+}
+
+// Peek behaves like Read, but does not consume data.
+func (buff *CircularBuffer) Peek(out []byte) (int, error) {
+	return buff.read(out, false)
 }
