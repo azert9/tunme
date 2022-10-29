@@ -4,7 +4,6 @@ import (
 	"sync"
 	"testing"
 	"time"
-	"tunme/internal/circular_buffer"
 	"tunme/test/assert"
 )
 
@@ -14,7 +13,7 @@ func TestWriteLessThanCapacity(t *testing.T) {
 
 	// Given
 
-	buff := circular_buffer.NewCircularBuffer(len(sampleData1) * 2)
+	buff := NewCircularBuffer(len(sampleData1) * 2)
 
 	// When
 
@@ -31,7 +30,7 @@ func TestReadAvailable(t *testing.T) {
 
 	// Given
 
-	buff := circular_buffer.NewCircularBuffer(len(sampleData1) * 2)
+	buff := NewCircularBuffer(len(sampleData1) * 2)
 	_, _ = buff.Write(sampleData1)
 
 	// When
@@ -50,7 +49,7 @@ func TestReadAvailableInTwoChunks(t *testing.T) {
 
 	// Given
 
-	buff := circular_buffer.NewCircularBuffer(len(sampleData1) * 2)
+	buff := NewCircularBuffer(len(sampleData1) * 2)
 	_, _ = buff.Write(sampleData1)
 	_, _ = buff.Read(make([]byte, len(sampleData1)/2))
 
@@ -73,7 +72,7 @@ func TestWriteInTwoChunks(t *testing.T) {
 	chunk1 := sampleData1[:len(sampleData1)/2]
 	chunk2 := sampleData1[len(sampleData1)/2:]
 
-	buff := circular_buffer.NewCircularBuffer(len(sampleData1) * 2)
+	buff := NewCircularBuffer(len(sampleData1) * 2)
 	_, _ = buff.Write(chunk1)
 
 	// When
@@ -97,7 +96,7 @@ func TestWriteMoreThanCapacity(t *testing.T) {
 
 	// Given
 
-	buff := circular_buffer.NewCircularBuffer(10)
+	buff := NewCircularBuffer(10)
 
 	// When
 
@@ -105,7 +104,7 @@ func TestWriteMoreThanCapacity(t *testing.T) {
 
 	// Then
 
-	if err != circular_buffer.ErrNotEnoughSpaceInBuffer {
+	if err != ErrNotEnoughSpaceInBuffer {
 		t.Logf("unexpected error (or missing error): %v", err)
 		t.Fail()
 	}
@@ -117,7 +116,7 @@ func TestWriteAroundTheBuffer(t *testing.T) {
 
 	// Given
 
-	buff := circular_buffer.NewCircularBuffer(len(sampleData1) + 4)
+	buff := NewCircularBuffer(len(sampleData1) + 4)
 	_, _ = buff.Write(make([]byte, len(sampleData1)))
 	_, _ = buff.Read(make([]byte, len(sampleData1)))
 
@@ -135,7 +134,7 @@ func TestReadAroundTheBuffer(t *testing.T) {
 
 	// Given
 
-	buff := circular_buffer.NewCircularBuffer(len(sampleData1) + 4)
+	buff := NewCircularBuffer(len(sampleData1) + 4)
 	_, _ = buff.Write(make([]byte, len(sampleData1)))
 	_, _ = buff.Read(make([]byte, len(sampleData1)))
 	_, _ = buff.Write(sampleData1)
@@ -158,7 +157,7 @@ func TestBlockingRead(t *testing.T) {
 
 	// Given
 
-	buff := circular_buffer.NewCircularBuffer(len(sampleData1) * 2)
+	buff := NewCircularBuffer(len(sampleData1) * 2)
 
 	// When
 
