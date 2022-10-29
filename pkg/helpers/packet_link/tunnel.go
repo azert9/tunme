@@ -12,12 +12,14 @@ type tunnel struct {
 	streams    *streamManager
 }
 
-func newTunnel(sender link.PacketSender, receiver link.PacketReceiver) link.Tunnel {
+func newTunnel(sender link.PacketSender, receiver link.PacketReceiver, isServer bool) link.Tunnel {
+
+	// TODO: the client should send a first packet to traverse NATs
 
 	tun := &tunnel{
 		sender:     sender,
 		packetChan: make(chan []byte, 16), // TODO: configure capacity
-		streams:    newStreamManager(),
+		streams:    newStreamManager(isServer, sender),
 	}
 
 	go receiveLoop(receiver, tun.packetChan, tun.streams)
@@ -52,17 +54,9 @@ func (tun *tunnel) ReceivePacket(out []byte) (int, error) {
 }
 
 func (tun *tunnel) AcceptStream() (io.ReadWriteCloser, error) {
-	return tun.streams.Accept()
+	return tun.streams.accept()
 }
 
 func (tun *tunnel) OpenStream() (io.ReadWriteCloser, error) {
-
-	crafted := make([]byte, 1)
-	crafted[0] = 1
-
-	if err := tun.sender.SendPacket(crafted); err != nil {
-		return nil, err
-	}
-
-	return nil, nil
+	return tun.streams.openStream(), nil
 }
