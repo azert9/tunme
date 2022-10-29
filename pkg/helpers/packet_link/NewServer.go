@@ -5,5 +5,5 @@ import (
 )
 
 func NewClient(sender link.PacketSender, receiver link.PacketReceiver) link.Tunnel {
-	return newTunnel(sender, receiver)
+	return newTunnel(sender, receiver, true)
 }

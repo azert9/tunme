@@ -1,25 +1,31 @@
 package packet_link
 
 import (
+	"sync"
 	"tunme/internal/circular_buffer"
 	"tunme/pkg/link"
 )
 
 type stream struct {
+	id           streamId
 	receiver     *streamReceiver
 	sendLoop     *streamSendLoop
 	packetSender link.PacketSender
+	firstAckOnce sync.Once
+	firstAckChan chan struct{} // this chan is closed when the first ACK is received (the connection is established)
 }
 
-func newStream(packetSender link.PacketSender) *stream {
+func newStream(id streamId, packetSender link.PacketSender) *stream {
 
 	windowLen := 65536 // TODO: configure
 	sendingBuff := circular_buffer.NewCircularBuffer(windowLen)
 	receivingBuff := circular_buffer.NewCircularBuffer(windowLen)
 
 	s := &stream{
+		id:           id,
 		sendLoop:     newStreamSendLoop(packetSender, sendingBuff),
 		packetSender: packetSender,
+		firstAckChan: make(chan struct{}),
 	}
 
 	s.receiver = newStreamReceiver(s, receivingBuff)
@@ -54,6 +60,11 @@ func (s *stream) sendAck(streamId streamId, offset uint64) error {
 }
 
 func (s *stream) handleReceivedAckPacket(packet ackPacket) {
+
+	s.firstAckOnce.Do(func() {
+		close(s.firstAckChan)
+	})
+
 	s.sendLoop.handleReceivedAckPacket(packet)
 }
 

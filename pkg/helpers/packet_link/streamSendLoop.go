@@ -45,7 +45,12 @@ func (l *streamSendLoop) close() {
 }
 
 func (l *streamSendLoop) handleReceivedAckPacket(packet ackPacket) {
-	l._ackChan <- packet.getStreamOffset()
+
+	select {
+	case l._ackChan <- packet.getStreamOffset():
+	default:
+		// ACK received while we were already in the process of retransmitting. Not catastrophic.
+	}
 }
 
 func (l *streamSendLoop) _loop() {

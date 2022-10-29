@@ -5,6 +5,14 @@ import (
 	"fmt"
 )
 
+type packetType byte
+
+const (
+	packetTypePacket     packetType = 0
+	packetTypeStreamData packetType = 1
+	packetTypeStreamAck  packetType = 2
+)
+
 type streamId uint32
 
 type dataPacket struct {
@@ -26,7 +34,7 @@ func newDataPacket(payloadLen int) dataPacket {
 	p := dataPacket{
 		_buff: make([]byte, 16+payloadLen),
 	}
-	p._buff[0] = 1
+	p._buff[0] = byte(packetTypeStreamData)
 	return p
 }
 
@@ -62,7 +70,7 @@ func newAckPacket() ackPacket {
 	p := ackPacket{
 		_buff: make([]byte, 16),
 	}
-	p._buff[0] = 2
+	p._buff[0] = byte(packetTypeStreamAck)
 	return p
 }
 

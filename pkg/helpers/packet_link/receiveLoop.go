@@ -1,7 +1,6 @@
 package packet_link
 
 import (
-	"log"
 	"tunme/pkg/link"
 )
 
@@ -23,20 +22,24 @@ func receiveLoop(receiver link.PacketReceiver, packetsChan chan<- []byte, stream
 		}
 
 		switch buff[0] {
-		case 0: // dataPacket
+		case byte(packetTypePacket):
 			select {
 			case packetsChan <- buff[1:n]:
 			default:
 			}
 			buff = make([]byte, len(buff)) // TODO: avoid allocations as much as possible
-		case 1: // streamReceiver
-			streams.HandlePacket(buff[:n])
-		}
-
-		if buff[0] == 0 {
-		} else {
-			// TODO
-			log.Printf("invalid dataPacket type")
+		case byte(packetTypeStreamData):
+			packet, err := dataPacketFromBuff(buff[:n])
+			if err != nil {
+				panic(err) // TODO
+			}
+			streams.handleReceivedDataPacket(packet)
+		case byte(packetTypeStreamAck):
+			packet, err := ackPacketFromBuff(buff[:n])
+			if err != nil {
+				panic(err) // TODO
+			}
+			streams.handleReceivedAckPacket(packet)
 		}
 	}
 }

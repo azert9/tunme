@@ -42,13 +42,14 @@ func (p _mockPacketPipe) forwardToStream(stream *stream, waitGroup *sync.WaitGro
 				break
 			}
 
-			if packet[0] == 1 {
+			switch packet[0] {
+			case byte(packetTypeStreamData):
 				dataPacket, err := dataPacketFromBuff(packet)
 				if err != nil {
 					panic(err)
 				}
 				stream.handleReceivedDataPacket(dataPacket)
-			} else if packet[0] == 2 {
+			case byte(packetTypeStreamAck):
 				ackPacket, err := ackPacketFromBuff(packet)
 				if err != nil {
 					panic(err)
@@ -71,9 +72,9 @@ func TestSendLargeBufferThroughStream(t *testing.T) {
 	pipe2 := _mockPacketPipe(make(chan []byte, 100))
 	defer close(pipe2)
 
-	stream1 := newStream(pipe1)
+	stream1 := newStream(0, pipe1)
 	defer stream1.Close()
-	stream2 := newStream(pipe2)
+	stream2 := newStream(0, pipe2)
 	defer stream2.Close()
 
 	pipe1.forwardToStream(stream2, &waitGroup)
