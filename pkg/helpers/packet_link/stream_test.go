@@ -1,226 +1,101 @@
 package packet_link
 
 import (
+	"fmt"
 	"io"
+	"math/rand"
+	"sync"
 	"testing"
 	"tunme/test/assert"
 )
 
-var _testPayload = []byte{0x54, 0x98, 0xa6, 0x00, 0x2f, 0xff, 0xb8}
+type _mockPacketPipe chan []byte
 
-func _makeTestPacketWithPayload(offset uint64, payload []byte) dataPacket {
-
-	packet := newDataPacket(len(payload))
-	packet.setStreamOffset(offset)
-	copy(packet.getPayload(), payload)
-
-	return packet
-}
-
-func _makeTestPacket(offset uint64) dataPacket {
-	return _makeTestPacketWithPayload(offset, _testPayload)
-}
-
-type _mockAckInfo struct {
-	streamId streamId
-	offset   uint64
-}
-
-type _mockAckSender struct {
-	sent []_mockAckInfo
-}
-
-func (s *_mockAckSender) sendAck(streamId streamId, offset uint64) error {
-
-	s.sent = append(s.sent, _mockAckInfo{
-		streamId: streamId,
-		offset:   offset,
-	})
-
+func (p _mockPacketPipe) SendPacket(packet []byte) error {
+	// TODO: drop packets randomly
+	p <- packet
 	return nil
 }
 
-func _newMockAckSender() *_mockAckSender {
-	return &_mockAckSender{}
+func (p _mockPacketPipe) ReceivePacket(out []byte) (int, error) {
+
+	packet := <-p
+
+	if len(out) < len(packet) {
+		return 0, fmt.Errorf("packet too large for buffer")
+	}
+
+	copy(out, packet)
+
+	return len(packet), nil
 }
 
-func TestReceivePacketNoError(t *testing.T) {
+func (p _mockPacketPipe) forwardToStream(stream *stream, waitGroup *sync.WaitGroup) {
+
+	waitGroup.Add(1)
+	go func() {
+		defer waitGroup.Done()
+
+		for {
+			packet, ok := <-p
+			if !ok {
+				break
+			}
+
+			if packet[0] == 1 {
+				dataPacket, err := dataPacketFromBuff(packet)
+				if err != nil {
+					panic(err)
+				}
+				stream.handleReceivedDataPacket(dataPacket)
+			} else if packet[0] == 2 {
+				ackPacket, err := ackPacketFromBuff(packet)
+				if err != nil {
+					panic(err)
+				}
+				stream.handleReceivedAckPacket(ackPacket)
+			}
+		}
+	}()
+}
+
+func TestSendLargeBufferThroughStream(t *testing.T) {
 
 	// Given
 
-	mockAckSender := _newMockAckSender()
-	stream := newStream(mockAckSender)
-	packet := _makeTestPacket(0)
+	var waitGroup sync.WaitGroup
+	defer waitGroup.Wait()
+
+	pipe1 := _mockPacketPipe(make(chan []byte, 100))
+	defer close(pipe1)
+	pipe2 := _mockPacketPipe(make(chan []byte, 100))
+	defer close(pipe2)
+
+	stream1 := newStream(pipe1)
+	defer stream1.Close()
+	stream2 := newStream(pipe2)
+	defer stream2.Close()
+
+	pipe1.forwardToStream(stream2, &waitGroup)
+	pipe2.forwardToStream(stream1, &waitGroup)
+
+	data := make([]byte, 1000)
+	rnd := rand.New(rand.NewSource(0))
+	rnd.Read(data)
 
 	// When
 
-	receiveErr := stream.handleReceivedPacket(packet)
+	sendN, sendErr := stream1.Write(data)
+
+	readBuff := make([]byte, len(data))
+	readN, readErr := io.ReadFull(stream2, readBuff)
 
 	// Then
 
-	assert.NoErr(t, receiveErr)
-}
-
-func TestReadDataJustReceived(t *testing.T) {
-
-	// Given
-
-	mockAckSender := _newMockAckSender()
-	stream := newStream(mockAckSender)
-	_ = stream.handleReceivedPacket(_makeTestPacket(0))
-
-	// When
-
-	readBuff := make([]byte, len(_testPayload))
-	readN, readErr := io.ReadFull(stream, readBuff)
-
-	// Then
+	assert.NoErr(t, sendErr)
+	assert.Equal(t, sendN, len(data))
 
 	assert.NoErr(t, readErr)
-	assert.SlicesEqual(t, _testPayload, readBuff[:readN])
+	assert.Equal(t, readN, len(data))
+	assert.SlicesEqual(t, readBuff, data)
 }
-
-func TestStreamDropsUnorderedPacket(t *testing.T) {
-
-	// Given
-
-	mockAckSender := _newMockAckSender()
-	stream := newStream(mockAckSender)
-	packet := _makeTestPacket(1)
-
-	// When
-
-	receiveErr := stream.handleReceivedPacket(packet)
-
-	// Then
-
-	if receiveErr == nil {
-		t.Logf("error is nil")
-		t.Fail()
-	}
-}
-
-func TestReceiveTwoChunks(t *testing.T) {
-
-	// Given
-
-	mockAckSender := _newMockAckSender()
-	stream := newStream(mockAckSender)
-	_ = stream.handleReceivedPacket(_makeTestPacketWithPayload(0, _testPayload[:3]))
-	packet2 := _makeTestPacketWithPayload(3, _testPayload[3:])
-
-	// When
-
-	receiveErr := stream.handleReceivedPacket(packet2)
-
-	// Then
-
-	assert.NoErr(t, receiveErr)
-
-	readBuff := make([]byte, len(_testPayload))
-	n, err := stream.Read(readBuff)
-	assert.NoErr(t, err)
-	assert.SlicesEqual(t, _testPayload, readBuff[:n])
-}
-
-func TestReceiveOverlappingChunks(t *testing.T) {
-
-	// Given
-
-	mockAckSender := _newMockAckSender()
-	stream := newStream(mockAckSender)
-	_ = stream.handleReceivedPacket(_makeTestPacketWithPayload(0, _testPayload[:3]))
-	packet2 := _makeTestPacketWithPayload(2, _testPayload[2:])
-
-	// When
-
-	receiveErr := stream.handleReceivedPacket(packet2)
-
-	// Then
-
-	assert.NoErr(t, receiveErr)
-
-	readBuff := make([]byte, len(_testPayload))
-	n, err := stream.Read(readBuff)
-	assert.NoErr(t, err)
-	assert.SlicesEqual(t, _testPayload, readBuff[:n])
-}
-
-func TestReceiveChunkInThePast(t *testing.T) {
-
-	// Given
-
-	mockAckSender := _newMockAckSender()
-	stream := newStream(mockAckSender)
-	_ = stream.handleReceivedPacket(_makeTestPacket(0))
-	packet2 := _makeTestPacketWithPayload(2, _testPayload[2:3])
-
-	// When
-
-	receiveErr := stream.handleReceivedPacket(packet2)
-
-	// Then
-
-	assert.NoErr(t, receiveErr)
-
-	readBuff := make([]byte, len(_testPayload))
-	n, err := stream.Read(readBuff)
-	assert.NoErr(t, err)
-	assert.SlicesEqual(t, _testPayload, readBuff[:n])
-}
-
-func TestAckAfterPacketReceived(t *testing.T) {
-
-	// Given
-
-	mockAckSender := _newMockAckSender()
-	stream := newStream(mockAckSender)
-	packet := _makeTestPacket(0)
-
-	// When
-
-	_ = stream.handleReceivedPacket(packet)
-
-	// Then
-
-	assert.Equal(t, len(mockAckSender.sent), 1)
-	assert.Equal(t, mockAckSender.sent[0].streamId, 0) // TODO
-	assert.Equal(t, mockAckSender.sent[0].offset, uint64(len(_testPayload)))
-}
-
-func TestAckAfterRetransmission(t *testing.T) {
-
-	// Given
-
-	mockAckSender := _newMockAckSender()
-	stream := newStream(mockAckSender)
-	_ = stream.handleReceivedPacket(_makeTestPacket(0))
-
-	// When
-
-	_ = stream.handleReceivedPacket(_makeTestPacketWithPayload(1, _testPayload[1:3]))
-
-	// Then
-
-	assert.Equal(t, len(mockAckSender.sent), 2)
-	assert.Equal(t, mockAckSender.sent[1].streamId, 0) // TODO
-	assert.Equal(t, mockAckSender.sent[1].offset, uint64(len(_testPayload)))
-}
-
-func TestAckNotSentAfterUnorderedPacketInTheFuture(t *testing.T) {
-
-	// Given
-
-	mockAckSender := _newMockAckSender()
-	stream := newStream(mockAckSender)
-
-	// When
-
-	_ = stream.handleReceivedPacket(_makeTestPacket(1))
-
-	// Then
-
-	assert.Equal(t, len(mockAckSender.sent), 0)
-}
-
-// TODO: test receive window full

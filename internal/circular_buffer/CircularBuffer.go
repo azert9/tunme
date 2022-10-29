@@ -2,6 +2,7 @@ package circular_buffer
 
 import (
 	"errors"
+	"io"
 	"sync"
 	"tunme/internal/utils"
 )
@@ -14,6 +15,7 @@ type CircularBuffer struct {
 	_buff      []byte
 	_off       int
 	_len       int
+	_closed    bool
 }
 
 func NewCircularBuffer(capacity int) *CircularBuffer {
@@ -27,14 +29,35 @@ func NewCircularBuffer(capacity int) *CircularBuffer {
 	return buff
 }
 
+func (buff *CircularBuffer) Len() int {
+	return buff._len
+}
+
 func (buff *CircularBuffer) Capacity() int {
 	return len(buff._buff)
+}
+
+// Close always return a nil error.
+func (buff *CircularBuffer) Close() error {
+
+	buff._mutex.Lock()
+	defer buff._mutex.Unlock()
+
+	buff._closed = true
+
+	buff._writeCond.Broadcast()
+
+	return nil
 }
 
 func (buff *CircularBuffer) Write(data []byte) (int, error) {
 
 	buff._mutex.Lock()
 	defer buff._mutex.Unlock()
+
+	if buff._closed {
+		return 0, io.EOF
+	}
 
 	dataEnd := (buff._off + buff._len) % len(buff._buff)
 
@@ -56,7 +79,7 @@ func (buff *CircularBuffer) Write(data []byte) (int, error) {
 
 	buff._len += len(data)
 
-	buff._writeCond.Signal()
+	buff._writeCond.Broadcast()
 
 	return len(data), nil
 }
@@ -70,8 +93,12 @@ func (buff *CircularBuffer) read(out []byte, consume bool) (int, error) {
 	buff._mutex.Lock()
 	defer buff._mutex.Unlock()
 
-	for buff._len == 0 {
+	for buff._len == 0 && !buff._closed {
 		buff._writeCond.Wait()
+	}
+
+	if buff._len == 0 && buff._closed {
+		return 0, io.EOF
 	}
 
 	rdLen := utils.Min(buff._len, len(out))

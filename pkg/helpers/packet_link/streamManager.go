@@ -31,7 +31,7 @@ func (mgr *streamManager) HandlePacket(packet []byte) {
 	//mgr.mutex.Lock()
 	//defer mgr.mutex.Unlock()
 
-	//stream, found := mgr.streams[streamId]
+	//streamReceiver, found := mgr.streams[streamId]
 	//if !found {
 
 	//	if streamOffset != 0 {
@@ -39,14 +39,14 @@ func (mgr *streamManager) HandlePacket(packet []byte) {
 	//		return
 	//	}
 
-	//	// TODO: create the stream
+	//	// TODO: create the streamReceiver
 
 	//	mgr.newStreamsChan <- struct{}{}
 	//}
 
 	//// TODO: truncate the part of the dataPacket which
 
-	//_ = stream
+	//_ = streamReceiver
 
 	// TODO: write the received data
 	// TODO: send an ACK (which must contain information about the available window size)

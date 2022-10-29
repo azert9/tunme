@@ -29,7 +29,7 @@ func receiveLoop(receiver link.PacketReceiver, packetsChan chan<- []byte, stream
 			default:
 			}
 			buff = make([]byte, len(buff)) // TODO: avoid allocations as much as possible
-		case 1: // stream
+		case 1: // streamReceiver
 			streams.HandlePacket(buff[:n])
 		}
 
