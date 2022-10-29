@@ -43,7 +43,7 @@ func (tun *tunnel) ReceivePacket(out []byte) (int, error) {
 	packet := <-tun.packetChan
 
 	if len(out) < len(packet) {
-		return 0, fmt.Errorf("packet too large for buffer")
+		return 0, fmt.Errorf("dataPacket too large for buffer")
 	}
 
 	copy(out, packet)

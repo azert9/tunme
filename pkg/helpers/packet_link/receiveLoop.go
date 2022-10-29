@@ -18,12 +18,12 @@ func receiveLoop(receiver link.PacketReceiver, packetsChan chan<- []byte, stream
 		}
 
 		if n == 0 {
-			// keep-alive packet
+			// keep-alive dataPacket
 			continue
 		}
 
 		switch buff[0] {
-		case 0: // packet
+		case 0: // dataPacket
 			select {
 			case packetsChan <- buff[1:n]:
 			default:
@@ -36,7 +36,7 @@ func receiveLoop(receiver link.PacketReceiver, packetsChan chan<- []byte, stream
 		if buff[0] == 0 {
 		} else {
 			// TODO
-			log.Printf("invalid packet type")
+			log.Printf("invalid dataPacket type")
 		}
 	}
 }
