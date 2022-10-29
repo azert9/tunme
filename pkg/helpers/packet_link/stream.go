@@ -1,48 +1,62 @@
 package packet_link
 
 import (
-	"fmt"
 	"tunme/internal/circular_buffer"
+	"tunme/pkg/link"
 )
 
 type stream struct {
-	_lastReceivedOffset uint64
-	_receivingBuff      *circular_buffer.CircularBuffer
-	_ackSender          ackSender
+	receiver     *streamReceiver
+	sendLoop     *streamSendLoop
+	packetSender link.PacketSender
 }
 
-func newStream(ackSender ackSender) *stream {
-	return &stream{
-		_receivingBuff: circular_buffer.NewCircularBuffer(2000), // TODO: configure the capacity
-		_ackSender:     ackSender,
+func newStream(packetSender link.PacketSender) *stream {
+
+	windowLen := 65536 // TODO: configure
+	sendingBuff := circular_buffer.NewCircularBuffer(windowLen)
+	receivingBuff := circular_buffer.NewCircularBuffer(windowLen)
+
+	s := &stream{
+		sendLoop:     newStreamSendLoop(packetSender, sendingBuff),
+		packetSender: packetSender,
 	}
+
+	s.receiver = newStreamReceiver(s, receivingBuff)
+
+	return s
 }
 
-// handleReceivedPacket should not be called concurrently.
-func (s *stream) handleReceivedPacket(packet dataPacket) error {
+func (s *stream) Close() error {
 
-	if packet.getStreamOffset() > s._lastReceivedOffset {
-		return fmt.Errorf("unordered dataPacket")
-	}
+	// TODO: properly close the stream on both ends
 
-	if packet.getStreamOffset()+uint64(len(packet.getPayload())) > s._lastReceivedOffset {
-
-		newData := packet.getPayload()[s._lastReceivedOffset-packet.getStreamOffset():]
-
-		if _, err := s._receivingBuff.Write(newData); err != nil {
-			return err
-		}
-
-		s._lastReceivedOffset += uint64(len(newData))
-	}
-
-	if err := s._ackSender.sendAck(0 /*TODO: streamId*/, s._lastReceivedOffset); err != nil {
-		return err
-	}
+	s.sendLoop.close() // TODO: do not call twice
 
 	return nil
 }
 
 func (s *stream) Read(out []byte) (int, error) {
-	return s._receivingBuff.Read(out)
+	return s.receiver.buff.Read(out)
+}
+
+func (s *stream) Write(buff []byte) (int, error) {
+	return s.sendLoop.buff.Write(buff)
+}
+
+func (s *stream) sendAck(streamId streamId, offset uint64) error {
+
+	packet := newAckPacket()
+	packet.setStreamId(streamId)
+	packet.setStreamOffset(offset)
+
+	return s.packetSender.SendPacket(packet.getBytes())
+}
+
+func (s *stream) handleReceivedAckPacket(packet ackPacket) {
+	s.sendLoop.handleReceivedAckPacket(packet)
+}
+
+func (s *stream) handleReceivedDataPacket(packet dataPacket) {
+	s.receiver.handleReceivedDataPacket(packet) // TODO: handle errors
 }

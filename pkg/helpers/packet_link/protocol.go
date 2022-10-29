@@ -14,7 +14,7 @@ type dataPacket struct {
 func dataPacketFromBuff(buff []byte) (dataPacket, error) {
 
 	if len(buff) < 16 {
-		return dataPacket{}, fmt.Errorf("truncated dataPacket")
+		return dataPacket{}, fmt.Errorf("truncated data packet")
 	}
 
 	return dataPacket{
@@ -23,9 +23,15 @@ func dataPacketFromBuff(buff []byte) (dataPacket, error) {
 }
 
 func newDataPacket(payloadLen int) dataPacket {
-	return dataPacket{
+	p := dataPacket{
 		_buff: make([]byte, 16+payloadLen),
 	}
+	p._buff[0] = 1
+	return p
+}
+
+func (p dataPacket) getBytes(payloadLen int) []byte {
+	return p._buff[:16+payloadLen]
 }
 
 func (p dataPacket) getStreamId() streamId {
@@ -53,9 +59,26 @@ type ackPacket struct {
 }
 
 func newAckPacket() ackPacket {
-	return ackPacket{
+	p := ackPacket{
 		_buff: make([]byte, 16),
 	}
+	p._buff[0] = 2
+	return p
+}
+
+func ackPacketFromBuff(buff []byte) (ackPacket, error) {
+
+	if len(buff) < 16 {
+		return ackPacket{}, fmt.Errorf("truncated ack packet")
+	}
+
+	return ackPacket{
+		_buff: buff,
+	}, nil
+}
+
+func (p ackPacket) getBytes() []byte {
+	return p._buff
 }
 
 func (p ackPacket) getStreamId() streamId {

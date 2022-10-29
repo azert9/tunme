@@ -23,7 +23,7 @@ func TestWriteLessThanCapacity(t *testing.T) {
 	// Then
 
 	assert.NoErr(t, writeErr)
-
+	assert.Equal(t, buff.Len(), len(sampleData1))
 	assert.Equal(t, writeN, len(sampleData1))
 }
 
