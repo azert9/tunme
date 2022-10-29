@@ -1,6 +1,7 @@
 package circular_buffer
 
 import (
+	"io"
 	"sync"
 	"testing"
 	"time"
@@ -37,6 +38,25 @@ func TestReadAvailable(t *testing.T) {
 
 	readBuff := make([]byte, len(sampleData1)*2)
 	n, err := buff.Read(readBuff)
+
+	// Then
+
+	assert.NoErr(t, err)
+
+	assert.SlicesEqual(t, readBuff[:n], sampleData1)
+}
+
+func TestPeekAvailable(t *testing.T) {
+
+	// Given
+
+	buff := NewCircularBuffer(len(sampleData1) * 2)
+	_, _ = buff.Write(sampleData1)
+
+	// When
+
+	readBuff := make([]byte, len(sampleData1)*2)
+	n, err := buff.Peek(readBuff)
 
 	// Then
 
@@ -179,4 +199,25 @@ func TestBlockingRead(t *testing.T) {
 	assert.NotEqual(t, readN, 0)
 
 	assert.SlicesEqual(t, readBuff[:readN], sampleData1[:readN])
+}
+
+func TestPeekDoesNotConsumeData(t *testing.T) {
+
+	var waitGroup sync.WaitGroup
+	defer waitGroup.Wait()
+
+	// Given
+
+	buff := NewCircularBuffer(len(sampleData1) * 2)
+	_, _ = buff.Write(sampleData1)
+
+	// When
+
+	_, _ = buff.Peek(make([]byte, len(sampleData1)))
+
+	// Then
+
+	n, err := io.ReadFull(buff, make([]byte, len(sampleData1)))
+	assert.NoErr(t, err)
+	assert.Equal(t, n, len(sampleData1))
 }
