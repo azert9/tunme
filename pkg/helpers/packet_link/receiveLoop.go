@@ -1,10 +1,13 @@
 package packet_link
 
 import (
+	"sync"
 	"tunme/pkg/link"
 )
 
-func receiveLoop(receiver link.PacketReceiver, packetsChan chan<- []byte, streams *streamManager) {
+func receiveLoop(receiver link.PacketReceiver, sender link.PacketSender, packetsChan chan<- []byte, firstPacketChan chan struct{}, streams *streamManager) {
+
+	var firstPacketOnce sync.Once
 
 	buff := make([]byte, 4096) // TODO: length
 
@@ -16,12 +19,18 @@ func receiveLoop(receiver link.PacketReceiver, packetsChan chan<- []byte, stream
 			panic(err)
 		}
 
-		if n == 0 {
-			// keep-alive dataPacket
-			continue
-		}
+		firstPacketOnce.Do(func() {
+			close(firstPacketChan)
+		})
 
 		switch buff[0] {
+		case byte(packetTypePing):
+			var packet [1]byte
+			packet[0] = byte(packetTypePong)
+			if err := sender.SendPacket(packet[:]); err != nil {
+				panic(err) // TODO
+			}
+		case byte(packetTypePong):
 		case byte(packetTypePacket):
 			select {
 			case packetsChan <- buff[1:n]:

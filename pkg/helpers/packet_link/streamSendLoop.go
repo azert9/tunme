@@ -11,6 +11,7 @@ import (
 // streamSendLoop is responsible for sending data packets (not ACKs), and handling received ACKs
 type streamSendLoop struct {
 	buff          *circular_buffer.CircularBuffer
+	_streamId     streamId
 	_waitGroup    sync.WaitGroup
 	_streamOffset uint64 // offset corresponding to the beginning of the buffered data, and the last ack received
 	_packetSender link.PacketSender
@@ -18,10 +19,11 @@ type streamSendLoop struct {
 	_closeChan    chan struct{}
 }
 
-func newStreamSendLoop(packetSender link.PacketSender, buff *circular_buffer.CircularBuffer) *streamSendLoop {
+func newStreamSendLoop(streamId streamId, packetSender link.PacketSender, buff *circular_buffer.CircularBuffer) *streamSendLoop {
 
 	l := &streamSendLoop{
 		buff:          buff,
+		_streamId:     streamId,
 		_packetSender: packetSender,
 		_ackChan:      make(chan uint64),
 		_closeChan:    make(chan struct{}),
@@ -59,6 +61,7 @@ func (l *streamSendLoop) _loop() {
 
 	// TODO: configure the max payload length according to the max packet size
 	packet := newDataPacket(2000)
+	packet.setStreamId(l._streamId)
 
 	// TODO: set streamId
 

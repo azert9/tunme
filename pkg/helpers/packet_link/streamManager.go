@@ -2,7 +2,6 @@ package packet_link
 
 import (
 	"io"
-	"log"
 	"sync"
 	"time"
 	"tunme/pkg/link"
@@ -56,7 +55,6 @@ func (mgr *streamManager) handleReceivedAckPacket(packet ackPacket) {
 
 	stream, found := mgr._streams[packet.getStreamId()]
 	if !found {
-		log.Printf("received ack packet for unknown stream")
 		return
 	}
 

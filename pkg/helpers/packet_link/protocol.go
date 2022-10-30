@@ -8,9 +8,11 @@ import (
 type packetType byte
 
 const (
-	packetTypePacket     packetType = 0
-	packetTypeStreamData packetType = 1
-	packetTypeStreamAck  packetType = 2
+	packetTypePing       packetType = 0
+	packetTypePong       packetType = 1
+	packetTypePacket     packetType = 2
+	packetTypeStreamData packetType = 3
+	packetTypeStreamAck  packetType = 4
 )
 
 type streamId uint32

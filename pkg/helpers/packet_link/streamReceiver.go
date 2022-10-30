@@ -8,13 +8,15 @@ import (
 // streamReceiver is responsible for handling incoming data packets and sending ACKs
 type streamReceiver struct {
 	buff                *circular_buffer.CircularBuffer
+	_streamId           streamId
 	_lastReceivedOffset uint64
 	_ackSender          ackSender
 }
 
-func newStreamReceiver(ackSender ackSender, buff *circular_buffer.CircularBuffer) *streamReceiver {
+func newStreamReceiver(streamId streamId, ackSender ackSender, buff *circular_buffer.CircularBuffer) *streamReceiver {
 	return &streamReceiver{
 		buff:       buff,
+		_streamId:  streamId,
 		_ackSender: ackSender,
 	}
 }
@@ -37,7 +39,7 @@ func (s *streamReceiver) handleReceivedDataPacket(packet dataPacket) error {
 		s._lastReceivedOffset += uint64(len(newData))
 	}
 
-	if err := s._ackSender.sendAck(0 /*TODO: streamId*/, s._lastReceivedOffset); err != nil {
+	if err := s._ackSender.sendAck(s._streamId, s._lastReceivedOffset); err != nil {
 		return err
 	}
 

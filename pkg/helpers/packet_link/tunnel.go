@@ -3,26 +3,51 @@ package packet_link
 import (
 	"fmt"
 	"io"
+	"time"
 	"tunme/pkg/link"
 )
 
 type tunnel struct {
-	sender     link.PacketSender
-	packetChan chan []byte
-	streams    *streamManager
+	sender          link.PacketSender
+	packetChan      chan []byte
+	streams         *streamManager
+	firstPacketChan chan struct{} // closed when the first packet is received
 }
 
 func newTunnel(sender link.PacketSender, receiver link.PacketReceiver, isServer bool) link.Tunnel {
 
-	// TODO: the client should send a first packet to traverse NATs
+	// TODO: the client should send regular keep-alive packets
 
 	tun := &tunnel{
-		sender:     sender,
-		packetChan: make(chan []byte, 16), // TODO: configure capacity
-		streams:    newStreamManager(isServer, sender),
+		sender:          sender,
+		packetChan:      make(chan []byte, 16), // TODO: configure capacity
+		streams:         newStreamManager(isServer, sender),
+		firstPacketChan: make(chan struct{}),
 	}
 
-	go receiveLoop(receiver, tun.packetChan, tun.streams)
+	go receiveLoop(receiver, sender, tun.packetChan, tun.firstPacketChan, tun.streams)
+
+	if isServer {
+		_ = <-tun.firstPacketChan
+	} else {
+
+		var packet [1]byte
+		packet[0] = byte(packetTypePing)
+
+		done := false
+		for !done {
+
+			if err := sender.SendPacket(packet[:]); err != nil {
+				panic(err) // TODO
+			}
+
+			select {
+			case _ = <-tun.firstPacketChan:
+				done = true
+			case _ = <-time.After(4 * time.Second): // TODO: configure
+			}
+		}
+	}
 
 	return tun
 }

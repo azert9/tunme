@@ -7,18 +7,18 @@ Packet:
 
 PacketPacket:
 
-* `packet_type: Uint8 = 0`
+* `packet_type: Uint8 = 1`
 * `payload: Byte[]`
 
 StreamDataPacket:
 
-* `packet_type: Uint8 = 1`
+* `packet_type: Uint8 = 2`
 * `stream_id: Uint32`
 * `stream_offset: Uint64`
 * `payload: Byte[]`
 
 StreamAckPacket:
 
-* `packet_type: Uint8 = 2`
+* `packet_type: Uint8 = 3`
 * `stream_id: Uint32`
 * `stream_offset: Uint64`

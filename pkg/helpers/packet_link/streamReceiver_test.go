@@ -50,7 +50,7 @@ func TestReceivePacketNoError(t *testing.T) {
 	// Given
 
 	mockAckSender := _newMockAckSender()
-	stream := newStreamReceiver(mockAckSender, circular_buffer.NewCircularBuffer(200))
+	stream := newStreamReceiver(0, mockAckSender, circular_buffer.NewCircularBuffer(200))
 	packet := _makeTestPacket(0)
 
 	// When
@@ -67,7 +67,7 @@ func TestReadDataJustReceived(t *testing.T) {
 	// Given
 
 	mockAckSender := _newMockAckSender()
-	stream := newStreamReceiver(mockAckSender, circular_buffer.NewCircularBuffer(200))
+	stream := newStreamReceiver(0, mockAckSender, circular_buffer.NewCircularBuffer(200))
 	_ = stream.handleReceivedDataPacket(_makeTestPacket(0))
 
 	// When
@@ -86,7 +86,7 @@ func TestStreamDropsUnorderedPacket(t *testing.T) {
 	// Given
 
 	mockAckSender := _newMockAckSender()
-	stream := newStreamReceiver(mockAckSender, circular_buffer.NewCircularBuffer(200))
+	stream := newStreamReceiver(0, mockAckSender, circular_buffer.NewCircularBuffer(200))
 	packet := _makeTestPacket(1)
 
 	// When
@@ -106,7 +106,7 @@ func TestReceiveTwoChunks(t *testing.T) {
 	// Given
 
 	mockAckSender := _newMockAckSender()
-	stream := newStreamReceiver(mockAckSender, circular_buffer.NewCircularBuffer(200))
+	stream := newStreamReceiver(0, mockAckSender, circular_buffer.NewCircularBuffer(200))
 	_ = stream.handleReceivedDataPacket(_makeTestPacketWithPayload(0, _testPayload[:3]))
 	packet2 := _makeTestPacketWithPayload(3, _testPayload[3:])
 
@@ -129,7 +129,7 @@ func TestReceiveOverlappingChunks(t *testing.T) {
 	// Given
 
 	mockAckSender := _newMockAckSender()
-	stream := newStreamReceiver(mockAckSender, circular_buffer.NewCircularBuffer(200))
+	stream := newStreamReceiver(0, mockAckSender, circular_buffer.NewCircularBuffer(200))
 	_ = stream.handleReceivedDataPacket(_makeTestPacketWithPayload(0, _testPayload[:3]))
 	packet2 := _makeTestPacketWithPayload(2, _testPayload[2:])
 
@@ -152,7 +152,7 @@ func TestReceiveChunkInThePast(t *testing.T) {
 	// Given
 
 	mockAckSender := _newMockAckSender()
-	stream := newStreamReceiver(mockAckSender, circular_buffer.NewCircularBuffer(200))
+	stream := newStreamReceiver(0, mockAckSender, circular_buffer.NewCircularBuffer(200))
 	_ = stream.handleReceivedDataPacket(_makeTestPacket(0))
 	packet2 := _makeTestPacketWithPayload(2, _testPayload[2:3])
 
@@ -175,7 +175,7 @@ func TestAckAfterPacketReceived(t *testing.T) {
 	// Given
 
 	mockAckSender := _newMockAckSender()
-	stream := newStreamReceiver(mockAckSender, circular_buffer.NewCircularBuffer(200))
+	stream := newStreamReceiver(0, mockAckSender, circular_buffer.NewCircularBuffer(200))
 	packet := _makeTestPacket(0)
 
 	// When
@@ -194,7 +194,7 @@ func TestAckAfterRetransmission(t *testing.T) {
 	// Given
 
 	mockAckSender := _newMockAckSender()
-	stream := newStreamReceiver(mockAckSender, circular_buffer.NewCircularBuffer(200))
+	stream := newStreamReceiver(0, mockAckSender, circular_buffer.NewCircularBuffer(200))
 	_ = stream.handleReceivedDataPacket(_makeTestPacket(0))
 
 	// When
@@ -213,7 +213,7 @@ func TestAckNotSentAfterUnorderedPacketInTheFuture(t *testing.T) {
 	// Given
 
 	mockAckSender := _newMockAckSender()
-	stream := newStreamReceiver(mockAckSender, circular_buffer.NewCircularBuffer(200))
+	stream := newStreamReceiver(0, mockAckSender, circular_buffer.NewCircularBuffer(200))
 
 	// When
 
