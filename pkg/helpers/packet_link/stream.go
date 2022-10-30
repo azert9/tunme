@@ -17,8 +17,9 @@ type stream struct {
 
 func newStream(id streamId, packetSender link.PacketSender) *stream {
 
-	windowLen := 65536 // TODO: configure
+	windowLen := 10000 // TODO: configure
 	sendingBuff := circular_buffer.NewCircularBuffer(windowLen)
+	sendingBuff.SetBlockingWrite(true)
 	receivingBuff := circular_buffer.NewCircularBuffer(windowLen)
 
 	s := &stream{
