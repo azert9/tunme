@@ -23,12 +23,12 @@ func newStream(id streamId, packetSender link.PacketSender) *stream {
 
 	s := &stream{
 		id:           id,
-		sendLoop:     newStreamSendLoop(packetSender, sendingBuff),
+		sendLoop:     newStreamSendLoop(id, packetSender, sendingBuff),
 		packetSender: packetSender,
 		firstAckChan: make(chan struct{}),
 	}
 
-	s.receiver = newStreamReceiver(s, receivingBuff)
+	s.receiver = newStreamReceiver(id, s, receivingBuff)
 
 	return s
 }
