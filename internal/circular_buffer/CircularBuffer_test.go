@@ -129,7 +129,7 @@ func TestWriteMoreThanCapacity(t *testing.T) {
 		t.Fail()
 	}
 
-	assert.Equal(t, n, 0)
+	assert.Equal(t, n, buff.Capacity())
 }
 
 func TestWriteAroundTheBuffer(t *testing.T) {
