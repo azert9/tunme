@@ -2,11 +2,11 @@ package tunme_cat
 
 import (
 	"fmt"
+	"github.com/azert9/tunme/pkg/tunme"
 	"github.com/spf13/cobra"
 	"io"
 	"os"
 	"sync"
-	"tunme/pkg/tunme"
 )
 
 func forwardStream(in io.Reader, out io.Writer) error {

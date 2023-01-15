@@ -2,9 +2,9 @@ package circular_buffer
 
 import (
 	"errors"
+	"github.com/azert9/tunme/internal/utils"
 	"io"
 	"sync"
-	"tunme/internal/utils"
 )
 
 var ErrNotEnoughSpaceInBuffer = errors.New("not enough space in buffer")

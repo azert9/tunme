@@ -1,7 +1,7 @@
 package packet_link
 
 import (
-	"tunme/pkg/link"
+	"github.com/azert9/tunme/pkg/link"
 )
 
 func NewClient(sender link.PacketSender, receiver link.PacketReceiver) link.Tunnel {

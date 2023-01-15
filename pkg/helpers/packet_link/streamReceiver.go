@@ -2,7 +2,7 @@ package packet_link
 
 import (
 	"fmt"
-	"tunme/internal/circular_buffer"
+	"github.com/azert9/tunme/internal/circular_buffer"
 )
 
 // streamReceiver is responsible for handling incoming data packets and sending ACKs

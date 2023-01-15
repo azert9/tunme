@@ -1,8 +1,8 @@
 package packet_link
 
 import (
+	"github.com/azert9/tunme/pkg/link"
 	"sync"
-	"tunme/pkg/link"
 )
 
 func receiveLoop(receiver link.PacketReceiver, sender link.PacketSender, packetsChan chan<- []byte, firstPacketChan chan struct{}, streams *streamManager) {

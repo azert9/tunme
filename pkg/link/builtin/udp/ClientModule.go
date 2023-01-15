@@ -2,9 +2,9 @@ package udp
 
 import (
 	"fmt"
+	"github.com/azert9/tunme/pkg/helpers/packet_link"
+	"github.com/azert9/tunme/pkg/link"
 	"net"
-	"tunme/pkg/helpers/packet_link"
-	"tunme/pkg/link"
 )
 
 type ClientModule struct {

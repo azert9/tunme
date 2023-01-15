@@ -2,11 +2,11 @@ package main
 
 import (
 	"fmt"
+	"github.com/azert9/tunme/pkg/cmd/tunme_cat"
+	"github.com/azert9/tunme/pkg/cmd/tunme_relay"
+	"github.com/azert9/tunme/pkg/cmd/tunme_tun"
 	"github.com/spf13/cobra"
 	"os"
-	"tunme/pkg/cmd/tunme_cat"
-	"tunme/pkg/cmd/tunme_relay"
-	"tunme/pkg/cmd/tunme_tun"
 )
 
 func main() {

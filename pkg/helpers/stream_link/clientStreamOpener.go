@@ -1,8 +1,8 @@
 package stream_link
 
 import (
+	"github.com/azert9/tunme/pkg/link"
 	"io"
-	"tunme/pkg/link"
 )
 
 type _clientStreamOpener struct {

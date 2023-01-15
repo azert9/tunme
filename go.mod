@@ -1,4 +1,4 @@
-module tunme
+module github.com/azert9/tunme
 
 go 1.18
 
