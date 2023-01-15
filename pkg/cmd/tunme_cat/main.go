@@ -2,6 +2,7 @@ package tunme_cat
 
 import (
 	"fmt"
+	"github.com/spf13/cobra"
 	"io"
 	"os"
 	"sync"
@@ -33,16 +34,8 @@ func closeOrWarn(closer io.Closer) {
 	}
 }
 
-func exitBadUsage(program string) {
-	_, _ = fmt.Fprintf(os.Stderr, "Usage: %s REMOTE REMOTE\n", program)
-	os.Exit(1)
-}
+func cobraMain(_ *cobra.Command, args []string) {
 
-func Main(program string, args []string) {
-
-	if len(args) != 1 {
-		exitBadUsage(program)
-	}
 	remote := args[0]
 
 	tunnel, err := tunme.OpenTunnel(remote)
@@ -82,4 +75,11 @@ func Main(program string, args []string) {
 			panic(err)
 		}
 	}()
+}
+
+var CobraCmd = cobra.Command{
+	Use:   "cat REMOTE",
+	Short: "Transfer data from standard streams through a tunnel",
+	Run:   cobraMain,
+	Args:  cobra.ExactArgs(1),
 }
