@@ -18,7 +18,7 @@ func (d *_streamDialer) Dial() (net.Conn, error) {
 	return net.Dial("tcp", d.ServerAddress)
 }
 
-func (ClientModule) Instantiate(positionalArgs []string, namedArgs []link.NamedArg) (*link.Tunnel, error) {
+func (ClientModule) Instantiate(positionalArgs []string, namedArgs []link.NamedArg) (link.Tunnel, error) {
 
 	if len(positionalArgs) != 1 {
 		return nil, fmt.Errorf("link options: wrong number of positional arguments")

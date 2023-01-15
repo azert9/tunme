@@ -4,12 +4,12 @@ import (
 	"bytes"
 	"fmt"
 	"io"
-	"net"
 	"sync"
-	"tunme/utils"
+	"tunme/internal/utils"
+	"tunme/pkg/link"
 )
 
-func sendDatagramsRandom(out net.PacketConn, quantity int) error {
+func sendPacketsRandom(tun link.PacketSender, quantity int) error {
 
 	source := newRandomStream("payload")
 
@@ -23,7 +23,7 @@ func sendDatagramsRandom(out net.PacketConn, quantity int) error {
 			panic(err)
 		}
 
-		if _, err := out.WriteTo(buff[:l], nil); err != nil {
+		if err := tun.SendPacket(buff[:l]); err != nil {
 			return err
 		}
 
@@ -33,7 +33,7 @@ func sendDatagramsRandom(out net.PacketConn, quantity int) error {
 	return nil
 }
 
-func receiveDatagramsRandom(in net.PacketConn, quantity int) error {
+func receivePacketsRandom(in link.PacketReceiver, quantity int) error {
 
 	source := newRandomStream("payload")
 
@@ -48,7 +48,7 @@ func receiveDatagramsRandom(in net.PacketConn, quantity int) error {
 			panic(err)
 		}
 
-		if _, _, err := in.ReadFrom(inBuff[:l]); err != nil {
+		if _, err := in.ReceivePacket(inBuff[:l]); err != nil {
 			return err
 		}
 
@@ -62,7 +62,7 @@ func receiveDatagramsRandom(in net.PacketConn, quantity int) error {
 	return nil
 }
 
-func testDatagrams(conn net.PacketConn, quantity int) {
+func testDatagrams(tun link.Tunnel, quantity int) {
 
 	var waitGroup sync.WaitGroup
 	defer waitGroup.Wait()
@@ -73,7 +73,7 @@ func testDatagrams(conn net.PacketConn, quantity int) {
 	go func() {
 		defer waitGroup.Done()
 
-		if err := sendDatagramsRandom(conn, quantity); err != nil && err != io.EOF {
+		if err := sendPacketsRandom(tun, quantity); err != nil && err != io.EOF {
 			panic(err)
 		}
 	}()
@@ -84,7 +84,7 @@ func testDatagrams(conn net.PacketConn, quantity int) {
 	go func() {
 		defer waitGroup.Done()
 
-		if err := receiveDatagramsRandom(conn, quantity); err != nil && err != io.EOF {
+		if err := receivePacketsRandom(tun, quantity); err != nil && err != io.EOF {
 			panic(err)
 		}
 	}()

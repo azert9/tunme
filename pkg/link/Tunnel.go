@@ -1,21 +1,29 @@
 package link
 
 import (
-	"net"
+	"io"
 )
 
-type Listener interface {
-	Accept() (net.Conn, error)
+type PacketSender interface {
+	SendPacket(packet []byte) error
 }
 
-type StreamDialer interface {
-	// TODO: support deadline / timeout
-	Dial() (net.Conn, error)
+type PacketReceiver interface {
+	ReceivePacket(out []byte) (int, error)
 }
 
-// TODO: smoother interface
-type Tunnel struct {
-	StreamListener net.Listener
-	StreamDialer   StreamDialer
-	PacketConn     net.PacketConn
+type StreamAcceptor interface {
+	AcceptStream() (io.ReadWriteCloser, error)
+}
+
+type StreamOpener interface {
+	OpenStream() (io.ReadWriteCloser, error)
+}
+
+type Tunnel interface {
+	io.Closer
+	PacketSender
+	PacketReceiver
+	StreamAcceptor
+	StreamOpener
 }

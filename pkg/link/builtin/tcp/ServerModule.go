@@ -10,7 +10,7 @@ import (
 type ServerModule struct {
 }
 
-func (ServerModule) Instantiate(positionalArgs []string, namedArgs []link.NamedArg) (*link.Tunnel, error) {
+func (ServerModule) Instantiate(positionalArgs []string, namedArgs []link.NamedArg) (link.Tunnel, error) {
 
 	if len(positionalArgs) != 1 {
 		return nil, fmt.Errorf("link options: wrong number of positional arguments")

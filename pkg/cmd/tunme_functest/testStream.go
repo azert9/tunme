@@ -4,9 +4,8 @@ import (
 	"bytes"
 	"fmt"
 	"io"
-	"net"
 	"sync"
-	"tunme/utils"
+	"tunme/internal/utils"
 )
 
 func writeRandom(out io.Writer, quantity int) error {
@@ -64,7 +63,7 @@ func readRandom(in io.Reader, quantity int) error {
 	return nil
 }
 
-func testStream(conn net.Conn, quantity int) {
+func testStream(conn io.ReadWriteCloser, quantity int) {
 
 	var waitGroup sync.WaitGroup
 	defer waitGroup.Wait()
