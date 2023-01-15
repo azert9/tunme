@@ -2,11 +2,16 @@ module tunme
 
 go 1.18
 
-require golang.org/x/sys v0.0.0-20220615213510-4f61da869c0c
+require (
+	github.com/spf13/cobra v1.6.1
+	github.com/stretchr/testify v1.8.1
+	golang.org/x/sys v0.0.0-20220615213510-4f61da869c0c
+)
 
 require (
-	github.com/alexflint/go-arg v1.4.3 // indirect
-	github.com/alexflint/go-scalar v1.1.0 // indirect
-	github.com/elliotchance/c2go v0.26.10 // indirect
-	golang.org/x/tools v0.1.11 // indirect
+	github.com/davecgh/go-spew v1.1.1 // indirect
+	github.com/inconshreveable/mousetrap v1.0.1 // indirect
+	github.com/pmezard/go-difflib v1.0.0 // indirect
+	github.com/spf13/pflag v1.0.5 // indirect
+	gopkg.in/yaml.v3 v3.0.1 // indirect
 )

@@ -7,7 +7,7 @@ import (
 	"tunme/pkg/link/builtin"
 )
 
-func OpenTunnel(args string) (*link.Tunnel, error) {
+func OpenTunnel(args string) (link.Tunnel, error) {
 
 	argSegments := strings.Split(args, ",")
 

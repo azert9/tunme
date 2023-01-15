@@ -60,7 +60,7 @@ import (
 	"net"
 )
 
-func configureInterface(iface string, address string) error {
+func addIpAddressToInterface(iface string, address string) error {
 
 	addr, subnet, err := net.ParseCIDR(address)
 	if err != nil {

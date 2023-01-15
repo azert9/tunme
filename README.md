@@ -28,7 +28,6 @@ tunme cat tcp-client,example.com:8081
 ## TODO
 
 * Middlewares (for e.g. cryptography)
-* UDP/packet-based link module
 * SOCKS
 * Pre-built binaries
 * Find a way of allowing multiples clients on the same TCP port (would be useful for relays)

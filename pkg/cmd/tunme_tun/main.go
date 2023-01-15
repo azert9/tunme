@@ -2,17 +2,17 @@ package tunme_tun
 
 import (
 	"fmt"
-	"github.com/alexflint/go-arg"
+	"github.com/spf13/cobra"
 	"io"
-	"net"
 	"os"
 	"sync"
+	"tunme/pkg/link"
 	"tunme/pkg/tunme"
 )
 
 // TODO: option to automatically add default gateway, or perform NAT
 
-func sendPackets(dev io.Reader, conn net.PacketConn) error {
+func sendPackets(dev io.Reader, tun link.PacketSender) error {
 
 	buff := make([]byte, 10000) // TODO: configure
 
@@ -21,7 +21,7 @@ func sendPackets(dev io.Reader, conn net.PacketConn) error {
 		n, readErr := dev.Read(buff)
 
 		if n > 0 {
-			_, err := conn.WriteTo(buff[:n], nil)
+			err := tun.SendPacket(buff[:n])
 			if err != nil {
 				return err
 			}
@@ -33,13 +33,13 @@ func sendPackets(dev io.Reader, conn net.PacketConn) error {
 	}
 }
 
-func receivePackets(conn net.PacketConn, dev io.Writer) error {
+func receivePackets(tun link.PacketReceiver, dev io.Writer) error {
 
 	buff := make([]byte, 10000) // TODO: configure
 
 	for {
 
-		n, _, readErr := conn.ReadFrom(buff)
+		n, readErr := tun.ReceivePacket(buff)
 
 		if n > 0 {
 			_, err := dev.Write(buff[:n])
@@ -65,17 +65,9 @@ type programOptions struct {
 	Address string `arg:"-a,--address"`
 }
 
-func Main(program string, args []string) {
+func cobraMain(_ *cobra.Command, args []string) {
 
-	var options programOptions
-	optParser, err := arg.NewParser(arg.Config{}, &options)
-	if err != nil {
-		panic(err)
-	}
-	if err := optParser.Parse(args); err != nil {
-		_, _ = fmt.Fprintf(os.Stderr, "%v\n\n", err)
-		exitBadUsage(program)
-	}
+	remote := args[0]
 
 	dev, err := NewTunDevice()
 	if err != nil {
@@ -83,15 +75,16 @@ func Main(program string, args []string) {
 	}
 	defer dev.Close()
 
-	if options.Address != "" {
-		if err := configureInterface(dev.Name(), options.Address); err != nil {
+	for _, addr := range flags.Addresses {
+		if err := addIpAddressToInterface(dev.Name(), addr); err != nil {
 			panic(err)
 		}
+		fmt.Printf("addr: %s\n", addr)
 	}
 
 	fmt.Printf("Created TUN interface \"%s\".\n", dev.Name())
 
-	tunnel, err := tunme.OpenTunnel(options.Remote)
+	tunnel, err := tunme.OpenTunnel(remote)
 	if err != nil {
 		panic(err)
 	}
@@ -102,7 +95,7 @@ func Main(program string, args []string) {
 	waitGroup.Add(1)
 	go func() {
 		defer waitGroup.Done()
-		if err := sendPackets(dev, tunnel.PacketConn); err != nil {
+		if err := sendPackets(dev, tunnel); err != nil {
 			panic(err)
 		}
 	}()
@@ -110,8 +103,23 @@ func Main(program string, args []string) {
 	waitGroup.Add(1)
 	go func() {
 		defer waitGroup.Done()
-		if err := receivePackets(tunnel.PacketConn, dev); err != nil {
+		if err := receivePackets(tunnel, dev); err != nil {
 			panic(err)
 		}
 	}()
+}
+
+var CobraCmd = cobra.Command{
+	Use:   "tun REMOTE",
+	Short: "Create a virtual network interface",
+	Run:   cobraMain,
+	Args:  cobra.ExactArgs(1),
+}
+
+var flags struct {
+	Addresses []string
+}
+
+func init() {
+	CobraCmd.Flags().StringArrayVarP(&flags.Addresses, "address", "a", nil, "Assign an address to the interface. Can be repeated.")
 }
