@@ -2,11 +2,11 @@ package packet_link
 
 import (
 	"fmt"
+	"github.com/azert9/tunme/test/assert"
 	"io"
 	"math/rand"
 	"sync"
 	"testing"
-	"tunme/test/assert"
 )
 
 type _mockPacketPipe chan []byte

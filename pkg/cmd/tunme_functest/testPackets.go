@@ -3,10 +3,10 @@ package tunme_functest
 import (
 	"bytes"
 	"fmt"
+	"github.com/azert9/tunme/internal/utils"
+	"github.com/azert9/tunme/pkg/link"
 	"io"
 	"sync"
-	"tunme/internal/utils"
-	"tunme/pkg/link"
 )
 
 func sendPacketsRandom(tun link.PacketSender, quantity int) error {

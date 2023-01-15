@@ -3,9 +3,9 @@ package tunme_functest
 import (
 	"bytes"
 	"fmt"
+	"github.com/azert9/tunme/internal/utils"
 	"io"
 	"sync"
-	"tunme/internal/utils"
 )
 
 func writeRandom(out io.Writer, quantity int) error {

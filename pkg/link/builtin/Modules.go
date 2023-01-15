@@ -1,9 +1,9 @@
 package builtin
 
 import (
-	"tunme/pkg/link"
-	"tunme/pkg/link/builtin/tcp"
-	"tunme/pkg/link/builtin/udp"
+	"github.com/azert9/tunme/pkg/link"
+	"github.com/azert9/tunme/pkg/link/builtin/tcp"
+	"github.com/azert9/tunme/pkg/link/builtin/udp"
 )
 
 func _makeBuiltinModuleLib() link.ModuleLibrary {

@@ -2,8 +2,8 @@ package tunme_functest
 
 import (
 	"crypto/sha1"
+	"github.com/azert9/tunme/internal/utils"
 	"io"
-	"tunme/internal/utils"
 )
 
 type _randomStream struct {

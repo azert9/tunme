@@ -3,10 +3,10 @@ package tunme_functest
 import (
 	"encoding/binary"
 	"fmt"
+	"github.com/azert9/tunme/pkg/tunme"
 	"io"
 	"os"
 	"sync"
-	"tunme/pkg/tunme"
 )
 
 func randInt(reader io.Reader, upperBound int) int {

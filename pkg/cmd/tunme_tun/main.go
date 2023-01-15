@@ -2,12 +2,12 @@ package tunme_tun
 
 import (
 	"fmt"
+	"github.com/azert9/tunme/pkg/link"
+	"github.com/azert9/tunme/pkg/tunme"
 	"github.com/spf13/cobra"
 	"io"
 	"os"
 	"sync"
-	"tunme/pkg/link"
-	"tunme/pkg/tunme"
 )
 
 // TODO: option to automatically add default gateway, or perform NAT

@@ -1,9 +1,9 @@
 package stream_link
 
 import (
+	"github.com/azert9/tunme/pkg/link"
 	"io"
 	"net"
-	"tunme/pkg/link"
 )
 
 type tunnel struct {
