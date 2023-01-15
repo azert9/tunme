@@ -2,6 +2,7 @@ package tunme_relay
 
 import (
 	"fmt"
+	"github.com/spf13/cobra"
 	"io"
 	"os"
 	"sync"
@@ -121,16 +122,8 @@ func relay(tun1 link.Tunnel, tun2 link.Tunnel) {
 	}()
 }
 
-func exitBadUsage(program string) {
-	_, _ = fmt.Fprintf(os.Stderr, "Usage: %s REMOTE\n", program)
-	os.Exit(1)
-}
+func cobraMain(_ *cobra.Command, args []string) {
 
-func Main(program string, args []string) {
-
-	if len(args) != 2 {
-		exitBadUsage(program)
-	}
 	remote1 := args[0]
 	remote2 := args[1]
 
@@ -147,4 +140,11 @@ func Main(program string, args []string) {
 	}
 
 	relay(tun1, tun2)
+}
+
+var CobraCmd = cobra.Command{
+	Use:   "relay REMOTE REMOTE",
+	Short: "Create a relay for tunme clients",
+	Run:   cobraMain,
+	Args:  cobra.ExactArgs(2),
 }
