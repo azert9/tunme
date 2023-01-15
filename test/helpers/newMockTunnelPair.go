@@ -2,9 +2,9 @@ package helpers
 
 import (
 	"fmt"
-	"tunme/pkg/helpers/packet_link"
-	"tunme/pkg/helpers/stream_link"
-	"tunme/pkg/link"
+	"github.com/azert9/tunme/pkg/helpers/packet_link"
+	"github.com/azert9/tunme/pkg/helpers/stream_link"
+	"github.com/azert9/tunme/pkg/link"
 )
 
 type mockPacketSender chan<- []byte

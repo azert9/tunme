@@ -1,8 +1,8 @@
 package stream_link
 
 import (
+	"github.com/azert9/tunme/pkg/link"
 	"net"
-	"tunme/pkg/link"
 )
 
 func NewServer(listener net.Listener) link.Tunnel {

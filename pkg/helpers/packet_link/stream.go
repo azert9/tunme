@@ -1,9 +1,9 @@
 package packet_link
 
 import (
+	"github.com/azert9/tunme/internal/circular_buffer"
+	"github.com/azert9/tunme/pkg/link"
 	"sync"
-	"tunme/internal/circular_buffer"
-	"tunme/pkg/link"
 )
 
 type stream struct {

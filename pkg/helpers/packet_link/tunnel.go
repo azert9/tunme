@@ -2,9 +2,9 @@ package packet_link
 
 import (
 	"fmt"
+	"github.com/azert9/tunme/pkg/link"
 	"io"
 	"time"
-	"tunme/pkg/link"
 )
 
 type tunnel struct {

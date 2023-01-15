@@ -1,12 +1,12 @@
 package packet_link
 
 import (
+	"github.com/azert9/tunme/pkg/link"
 	"github.com/stretchr/testify/assert"
 	"io"
 	"math/rand"
 	"sync"
 	"testing"
-	"tunme/pkg/link"
 )
 
 var clientTun link.Tunnel

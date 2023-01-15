@@ -1,11 +1,11 @@
 package packet_link
 
 import (
+	"github.com/azert9/tunme/internal/circular_buffer"
+	"github.com/azert9/tunme/pkg/link"
 	"io"
 	"sync"
 	"time"
-	"tunme/internal/circular_buffer"
-	"tunme/pkg/link"
 )
 
 // streamSendLoop is responsible for sending data packets (not ACKs), and handling received ACKs

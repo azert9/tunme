@@ -2,12 +2,12 @@ package tunme_relay
 
 import (
 	"fmt"
+	"github.com/azert9/tunme/pkg/link"
+	"github.com/azert9/tunme/pkg/tunme"
 	"github.com/spf13/cobra"
 	"io"
 	"os"
 	"sync"
-	"tunme/pkg/link"
-	"tunme/pkg/tunme"
 )
 
 // TODO: error handling

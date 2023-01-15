@@ -1,10 +1,10 @@
 package packet_link
 
 import (
+	"github.com/azert9/tunme/internal/circular_buffer"
+	"github.com/azert9/tunme/test/assert"
 	"io"
 	"testing"
-	"tunme/internal/circular_buffer"
-	"tunme/test/assert"
 )
 
 var _testPayload = []byte{0x54, 0x98, 0xa6, 0x00, 0x2f, 0xff, 0xb8}

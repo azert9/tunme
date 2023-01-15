@@ -1,11 +1,11 @@
 package circular_buffer
 
 import (
+	"github.com/azert9/tunme/test/assert"
 	"io"
 	"sync"
 	"testing"
 	"time"
-	"tunme/test/assert"
 )
 
 var sampleData1 = []byte{0x34, 0x87, 0x01, 0xf9, 0x56, 0x32, 0x11}
