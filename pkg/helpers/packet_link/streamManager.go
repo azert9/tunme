@@ -1,10 +1,10 @@
 package packet_link
 
 import (
+	"github.com/azert9/tunme/pkg/link"
 	"io"
 	"sync"
 	"time"
-	"tunme/pkg/link"
 )
 
 // TODO: handle closed streams (remove from the map)

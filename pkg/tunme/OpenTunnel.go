@@ -2,9 +2,9 @@ package tunme
 
 import (
 	"fmt"
+	"github.com/azert9/tunme/pkg/link"
+	"github.com/azert9/tunme/pkg/link/builtin"
 	"strings"
-	"tunme/pkg/link"
-	"tunme/pkg/link/builtin"
 )
 
 func OpenTunnel(args string) (link.Tunnel, error) {

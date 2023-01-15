@@ -2,9 +2,9 @@ package tcp
 
 import (
 	"fmt"
+	"github.com/azert9/tunme/pkg/helpers/stream_link"
+	"github.com/azert9/tunme/pkg/link"
 	"net"
-	"tunme/pkg/helpers/stream_link"
-	"tunme/pkg/link"
 )
 
 type ServerModule struct {
