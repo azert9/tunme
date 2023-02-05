@@ -4,12 +4,12 @@ import (
 	"bytes"
 	"fmt"
 	"github.com/azert9/tunme/internal/utils"
-	"github.com/azert9/tunme/pkg/link"
+	"github.com/azert9/tunme/pkg/modules"
 	"io"
 	"sync"
 )
 
-func sendPacketsRandom(tun link.PacketSender, quantity int) error {
+func sendPacketsRandom(tun modules.PacketSender, quantity int) error {
 
 	source := newRandomStream("payload")
 
@@ -33,7 +33,7 @@ func sendPacketsRandom(tun link.PacketSender, quantity int) error {
 	return nil
 }
 
-func receivePacketsRandom(in link.PacketReceiver, quantity int) error {
+func receivePacketsRandom(in modules.PacketReceiver, quantity int) error {
 
 	source := newRandomStream("payload")
 
@@ -62,7 +62,7 @@ func receivePacketsRandom(in link.PacketReceiver, quantity int) error {
 	return nil
 }
 
-func testDatagrams(tun link.Tunnel, quantity int) {
+func testDatagrams(tun modules.Tunnel, quantity int) {
 
 	var waitGroup sync.WaitGroup
 	defer waitGroup.Wait()

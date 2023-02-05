@@ -2,7 +2,7 @@ package tunme_tun
 
 import (
 	"fmt"
-	"github.com/azert9/tunme/pkg/link"
+	"github.com/azert9/tunme/pkg/modules"
 	"github.com/azert9/tunme/pkg/tunme"
 	"github.com/spf13/cobra"
 	"io"
@@ -12,7 +12,7 @@ import (
 
 // TODO: option to automatically add default gateway, or perform NAT
 
-func sendPackets(dev io.Reader, tun link.PacketSender) error {
+func sendPackets(dev io.Reader, tun modules.PacketSender) error {
 
 	buff := make([]byte, 10000) // TODO: configure
 
@@ -33,7 +33,7 @@ func sendPackets(dev io.Reader, tun link.PacketSender) error {
 	}
 }
 
-func receivePackets(tun link.PacketReceiver, dev io.Writer) error {
+func receivePackets(tun modules.PacketReceiver, dev io.Writer) error {
 
 	buff := make([]byte, 10000) // TODO: configure
 

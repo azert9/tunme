@@ -2,7 +2,7 @@ package tunme_relay
 
 import (
 	"fmt"
-	"github.com/azert9/tunme/pkg/link"
+	"github.com/azert9/tunme/pkg/modules"
 	"github.com/azert9/tunme/pkg/tunme"
 	"github.com/spf13/cobra"
 	"io"
@@ -12,7 +12,7 @@ import (
 
 // TODO: error handling
 
-func relayPackets(tun1 link.Tunnel, tun2 link.Tunnel) {
+func relayPackets(tun1 modules.Tunnel, tun2 modules.Tunnel) {
 
 	buff := make([]byte, 100000) // TODO: configure
 
@@ -60,7 +60,7 @@ func relayStream(conn1 io.ReadCloser, conn2 io.WriteCloser) {
 	}
 }
 
-func relayStreams(tun1 link.Tunnel, tun2 link.Tunnel) {
+func relayStreams(tun1 modules.Tunnel, tun2 modules.Tunnel) {
 
 	var waitGroup sync.WaitGroup
 	defer waitGroup.Wait()
@@ -93,7 +93,7 @@ func relayStreams(tun1 link.Tunnel, tun2 link.Tunnel) {
 	}
 }
 
-func relay(tun1 link.Tunnel, tun2 link.Tunnel) {
+func relay(tun1 modules.Tunnel, tun2 modules.Tunnel) {
 
 	var waitGroup sync.WaitGroup
 	defer waitGroup.Wait()
