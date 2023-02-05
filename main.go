@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/azert9/tunme/pkg/cmd/tunme_cat"
 	"github.com/azert9/tunme/pkg/cmd/tunme_relay"
+	"github.com/azert9/tunme/pkg/cmd/tunme_tcp"
 	"github.com/azert9/tunme/pkg/cmd/tunme_tun"
 	"github.com/spf13/cobra"
 	"os"
@@ -18,6 +19,7 @@ func main() {
 
 	cmd.AddCommand(&tunme_cat.CobraCmd)
 	cmd.AddCommand(&tunme_relay.CobraCmd)
+	cmd.AddCommand(&tunme_tcp.CobraCmd)
 	cmd.AddCommand(&tunme_tun.CobraCmd)
 
 	if err := cmd.Execute(); err != nil {
