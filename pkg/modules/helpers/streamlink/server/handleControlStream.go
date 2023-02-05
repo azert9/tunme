@@ -1,6 +1,7 @@
 package server
 
 import (
+	"context"
 	"encoding/binary"
 	"fmt"
 	"github.com/azert9/tunme/internal/streamlink/protocol"
@@ -16,8 +17,8 @@ func handleControlStream(stream io.ReadWriteCloser, bus *bus) error {
 	var wg sync.WaitGroup
 	defer wg.Wait()
 
-	controlStreamClosedChan := make(chan struct{})
-	defer close(controlStreamClosedChan)
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
 
 	// sending control packets
 
@@ -26,18 +27,16 @@ func handleControlStream(stream io.ReadWriteCloser, bus *bus) error {
 		defer wg.Done()
 
 		for {
-			select {
-			case controlPacket, ok := <-bus.outControlPacketsChan:
-				if !ok {
-					return
-				}
-				if _, err := stream.Write(controlPacket); err != nil {
-					// putting the packet back in the channel, as we failed to handle it
-					bus.outControlPacketsChan <- controlPacket
-					stream.Close()
-					return
-				}
-			case _, _ = <-controlStreamClosedChan:
+
+			controlPacket, ok := bus.receiveOutControlPacket(ctx)
+			if !ok {
+				break
+			}
+
+			if _, err := stream.Write(controlPacket); err != nil {
+				// putting the packet back in the channel, as we failed to handle it
+				bus.sendOutControlPacket(controlPacket)
+				stream.Close()
 				return
 			}
 		}
@@ -65,7 +64,10 @@ func handleControlStream(stream io.ReadWriteCloser, bus *bus) error {
 			if _, err := io.ReadFull(stream, buff); err != nil {
 				return err
 			}
-			bus.receivedPacketsChan <- buff // TODO: this may panic if the chan is closed
+			if !bus.sendReceivedPacket(buff) {
+				stream.Close()
+				break
+			}
 		case protocol.ControlPacketTypeStreamRequest:
 			return fmt.Errorf("stream requests can only be sent from server to client")
 		default:

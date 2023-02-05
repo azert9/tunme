@@ -18,10 +18,10 @@ func handleTcpStream(stream io.ReadWriteCloser, bus *bus) error {
 	case protocol.StreamTypeControl:
 		return handleControlStream(stream, bus)
 	case protocol.StreamTypeConnect:
-		bus.acceptedStreamsChan <- stream
+		bus.sendAcceptedStream(stream)
 		return nil
 	case protocol.StreamTypeCallBack:
-		bus.callBackStreamsChan <- stream
+		bus.sendCallbackStream(stream)
 		return nil
 	default:
 		return fmt.Errorf("invalid stream type in ClientHello")

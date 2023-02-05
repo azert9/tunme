@@ -15,24 +15,20 @@ type tunnel struct {
 	listener  net.Listener
 	closeOnce sync.Once
 	wg        sync.WaitGroup
-	bus       bus
+	bus       *bus
 }
 
 func NewTunnel(listener net.Listener) modules.Tunnel {
 
 	tun := &tunnel{
-		bus: bus{
-			acceptedStreamsChan:   make(chan io.ReadWriteCloser),
-			receivedPacketsChan:   make(chan []byte),
-			outControlPacketsChan: make(chan []byte),
-			callBackStreamsChan:   make(chan io.ReadWriteCloser),
-		},
+		listener: listener,
+		bus:      newBus(),
 	}
 
 	tun.wg.Add(1)
 	go func() {
 		defer tun.wg.Done()
-		acceptLoop(listener, &tun.bus)
+		acceptLoop(listener, tun.bus)
 	}()
 
 	return tun
@@ -42,8 +38,7 @@ func (tun *tunnel) Close() (err error) {
 
 	tun.closeOnce.Do(func() {
 
-		// TODO: maybe this is not a good idea, as it can cause writers to panic
-		tun.bus.closeAll()
+		tun.bus.close()
 
 		err = tun.listener.Close()
 		if err != nil {
@@ -64,7 +59,7 @@ func (tun *tunnel) SendPacket(packet []byte) error {
 
 func (tun *tunnel) ReceivePacket(out []byte) (int, error) {
 
-	packet, ok := <-tun.bus.receivedPacketsChan
+	packet, ok := tun.bus.receiveReceivedPacket()
 	if !ok {
 		return 0, fmt.Errorf("tunnel closed") // TODO: proper error
 	}
@@ -80,7 +75,7 @@ func (tun *tunnel) ReceivePacket(out []byte) (int, error) {
 
 func (tun *tunnel) AcceptStream() (io.ReadWriteCloser, error) {
 
-	stream, ok := <-tun.bus.acceptedStreamsChan
+	stream, ok := tun.bus.receiveAcceptedStream()
 	if !ok {
 		return nil, fmt.Errorf("tunnel closed") // TODO: proper error
 	}
@@ -95,10 +90,9 @@ func (tun *tunnel) OpenStream() (io.ReadWriteCloser, error) {
 		return nil, err
 	}
 
-	// TODO: may panic if the chan is closed
-	tun.bus.outControlPacketsChan <- controlPacket.Bytes()
+	tun.bus.sendOutControlPacket(controlPacket.Bytes())
 
-	stream, ok := <-tun.bus.callBackStreamsChan
+	stream, ok := tun.bus.receiveCallbackStream()
 	if !ok {
 		return nil, fmt.Errorf("tunnel closed") // TODO: proper error
 	}

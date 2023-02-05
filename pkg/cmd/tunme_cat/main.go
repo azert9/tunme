@@ -9,24 +9,6 @@ import (
 	"sync"
 )
 
-func forwardStream(in io.Reader, out io.Writer) error {
-
-	buff := make([]byte, 4096)
-
-	for {
-
-		n, readErr := in.Read(buff)
-
-		if _, err := out.Write(buff[:n]); err != nil {
-			return err
-		}
-
-		if readErr != nil {
-			return readErr
-		}
-	}
-}
-
 func closeOrWarn(closer io.Closer) {
 
 	if err := closer.Close(); err != nil {
@@ -75,7 +57,7 @@ func cobraMain(_ *cobra.Command, args []string) {
 	go func() {
 		defer waitGroup.Done()
 
-		if err := forwardStream(os.Stdin, stream); err != nil && err != io.EOF {
+		if _, err := io.Copy(stream, os.Stdin); err != nil && err != io.EOF {
 			panic(err)
 		}
 	}()
@@ -84,7 +66,7 @@ func cobraMain(_ *cobra.Command, args []string) {
 	go func() {
 		defer waitGroup.Done()
 
-		if err := forwardStream(stream, os.Stdout); err != nil && err != io.EOF {
+		if _, err := io.Copy(os.Stdout, stream); err != nil && err != io.EOF {
 			panic(err)
 		}
 	}()
