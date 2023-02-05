@@ -2,7 +2,7 @@ package packet_link
 
 import (
 	"github.com/azert9/tunme/internal/circular_buffer"
-	"github.com/azert9/tunme/test/assert"
+	"github.com/stretchr/testify/assert"
 	"io"
 	"testing"
 )
@@ -59,7 +59,7 @@ func TestReceivePacketNoError(t *testing.T) {
 
 	// Then
 
-	assert.NoErr(t, receiveErr)
+	assert.NoError(t, receiveErr)
 }
 
 func TestReadDataJustReceived(t *testing.T) {
@@ -77,8 +77,8 @@ func TestReadDataJustReceived(t *testing.T) {
 
 	// Then
 
-	assert.NoErr(t, readErr)
-	assert.SlicesEqual(t, _testPayload, readBuff[:readN])
+	assert.NoError(t, readErr)
+	assert.Equal(t, readBuff[:readN], _testPayload)
 }
 
 func TestStreamDropsUnorderedPacket(t *testing.T) {
@@ -116,12 +116,12 @@ func TestReceiveTwoChunks(t *testing.T) {
 
 	// Then
 
-	assert.NoErr(t, receiveErr)
+	assert.NoError(t, receiveErr)
 
 	readBuff := make([]byte, len(_testPayload))
 	n, err := stream.buff.Read(readBuff)
-	assert.NoErr(t, err)
-	assert.SlicesEqual(t, _testPayload, readBuff[:n])
+	assert.NoError(t, err)
+	assert.Equal(t, readBuff[:n], _testPayload)
 }
 
 func TestReceiveOverlappingChunks(t *testing.T) {
@@ -139,12 +139,12 @@ func TestReceiveOverlappingChunks(t *testing.T) {
 
 	// Then
 
-	assert.NoErr(t, receiveErr)
+	assert.NoError(t, receiveErr)
 
 	readBuff := make([]byte, len(_testPayload))
 	n, err := stream.buff.Read(readBuff)
-	assert.NoErr(t, err)
-	assert.SlicesEqual(t, _testPayload, readBuff[:n])
+	assert.NoError(t, err)
+	assert.Equal(t, readBuff[:n], _testPayload)
 }
 
 func TestReceiveChunkInThePast(t *testing.T) {
@@ -162,12 +162,12 @@ func TestReceiveChunkInThePast(t *testing.T) {
 
 	// Then
 
-	assert.NoErr(t, receiveErr)
+	assert.NoError(t, receiveErr)
 
 	readBuff := make([]byte, len(_testPayload))
 	n, err := stream.buff.Read(readBuff)
-	assert.NoErr(t, err)
-	assert.SlicesEqual(t, _testPayload, readBuff[:n])
+	assert.NoError(t, err)
+	assert.Equal(t, readBuff[:n], _testPayload)
 }
 
 func TestAckAfterPacketReceived(t *testing.T) {
@@ -184,9 +184,9 @@ func TestAckAfterPacketReceived(t *testing.T) {
 
 	// Then
 
-	assert.Equal(t, len(mockAckSender.sent), 1)
-	assert.Equal(t, mockAckSender.sent[0].streamId, 0) // TODO
-	assert.Equal(t, mockAckSender.sent[0].offset, uint64(len(_testPayload)))
+	assert.Equal(t, 1, len(mockAckSender.sent))
+	assert.Equal(t, streamId(0), mockAckSender.sent[0].streamId) // TODO
+	assert.Equal(t, uint64(len(_testPayload)), mockAckSender.sent[0].offset)
 }
 
 func TestAckAfterRetransmission(t *testing.T) {
@@ -203,9 +203,9 @@ func TestAckAfterRetransmission(t *testing.T) {
 
 	// Then
 
-	assert.Equal(t, len(mockAckSender.sent), 2)
-	assert.Equal(t, mockAckSender.sent[1].streamId, 0) // TODO
-	assert.Equal(t, mockAckSender.sent[1].offset, uint64(len(_testPayload)))
+	assert.Equal(t, 2, len(mockAckSender.sent))
+	assert.Equal(t, streamId(0), mockAckSender.sent[1].streamId) // TODO
+	assert.Equal(t, uint64(len(_testPayload)), mockAckSender.sent[1].offset)
 }
 
 func TestAckNotSentAfterUnorderedPacketInTheFuture(t *testing.T) {
@@ -221,7 +221,7 @@ func TestAckNotSentAfterUnorderedPacketInTheFuture(t *testing.T) {
 
 	// Then
 
-	assert.Equal(t, len(mockAckSender.sent), 0)
+	assert.Equal(t, 0, len(mockAckSender.sent))
 }
 
 // TODO: test receive window full
