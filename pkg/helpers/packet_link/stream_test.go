@@ -2,7 +2,7 @@ package packet_link
 
 import (
 	"fmt"
-	"github.com/azert9/tunme/test/assert"
+	"github.com/stretchr/testify/assert"
 	"io"
 	"math/rand"
 	"sync"
@@ -93,10 +93,10 @@ func TestSendLargeBufferThroughStream(t *testing.T) {
 
 	// Then
 
-	assert.NoErr(t, sendErr)
-	assert.Equal(t, sendN, len(data))
+	assert.NoError(t, sendErr)
+	assert.Equal(t, len(data), sendN)
 
-	assert.NoErr(t, readErr)
-	assert.Equal(t, readN, len(data))
-	assert.SlicesEqual(t, readBuff, data)
+	assert.NoError(t, readErr)
+	assert.Equal(t, len(data), readN)
+	assert.Equal(t, data, readBuff)
 }
