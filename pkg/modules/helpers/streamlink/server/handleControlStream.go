@@ -70,6 +70,11 @@ func handleControlStream(stream io.ReadWriteCloser, bus *bus) error {
 			}
 		case protocol.ControlPacketTypeStreamRequest:
 			return fmt.Errorf("stream requests can only be sent from server to client")
+		case protocol.ControlPacketTypeStreamRejected:
+			if !bus.sendCallbackStream(nil) {
+				stream.Close()
+				break
+			}
 		default:
 			return fmt.Errorf("invalid control packet type")
 		}

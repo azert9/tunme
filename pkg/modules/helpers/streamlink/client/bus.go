@@ -1,20 +1,16 @@
 package client
 
-import (
-	"io"
-)
-
 // TODO: use something similar for the server
 
 type bus struct {
 	_closeChan  chan struct{}
-	_streamChan chan io.ReadWriteCloser
+	_acceptChan chan struct{}
 }
 
 func newBus() *bus {
 	return &bus{
 		_closeChan:  make(chan struct{}),
-		_streamChan: make(chan io.ReadWriteCloser),
+		_acceptChan: make(chan struct{}),
 	}
 }
 
@@ -22,22 +18,24 @@ func (bus *bus) close() {
 	close(bus._closeChan)
 }
 
-func (bus *bus) sendStream(stream io.ReadWriteCloser) bool {
+func (bus *bus) sendAcceptNonBlocking() bool {
 
 	select {
-	case bus._streamChan <- stream:
+	case bus._acceptChan <- struct{}{}:
 		return true
-	case _, _ = <-bus._closeChan:
+	case <-bus._closeChan:
+		return false
+	default:
 		return false
 	}
 }
 
-func (bus *bus) receiveStream() (io.ReadWriteCloser, bool) {
+func (bus *bus) receiveAccept() bool {
 
 	select {
-	case stream := <-bus._streamChan:
-		return stream, true
-	case _, _ = <-bus._closeChan:
-		return nil, false
+	case <-bus._acceptChan:
+		return true
+	case <-bus._closeChan:
+		return false
 	}
 }
