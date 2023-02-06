@@ -1,11 +1,30 @@
 package test
 
 import (
+	"github.com/azert9/tunme/pkg/modules"
 	"github.com/azert9/tunme/pkg/tunme"
 	"github.com/stretchr/testify/assert"
+	"io"
+	"math/rand"
 	"os"
+	"sync"
 	"testing"
+	"time"
 )
+
+var randomBlockOfData = makeRandomBlockOfData(10000)
+
+func makeRandomBlockOfData(n int) []byte {
+
+	rnd := rand.New(rand.NewSource(0))
+
+	buff := make([]byte, n)
+	if _, err := io.ReadFull(rnd, buff); err != nil {
+		panic(err)
+	}
+
+	return buff
+}
 
 func TestFunctional(t *testing.T) {
 
@@ -29,5 +48,80 @@ func TestFunctional(t *testing.T) {
 		assert.NoError(t, server.Close())
 	}()
 
+	t.Run("client server", func(t *testing.T) {
+		tests(t, client, server)
+	})
+
+	t.Run("server client", func(t *testing.T) {
+		tests(t, server, client)
+	})
+}
+
+func tests(t *testing.T, tun1 tunme.Tunnel, tun2 tunme.Tunnel) {
+
 	// TODO
+
+	t.Run("opening a stream when not accepting fails", func(t *testing.T) {
+		_, err := tun1.OpenStream()
+		assert.Error(t, err)
+		assert.Equal(t, modules.ErrStreamRejected, err)
+	})
+
+	t.Run("opening a stream and transferring data", func(t *testing.T) {
+
+		var wg sync.WaitGroup
+		defer wg.Wait()
+
+		// acceptor in background
+
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+
+			stream, err := tun2.AcceptStream()
+			assert.NoError(t, err)
+
+			buff := make([]byte, len(randomBlockOfData))
+			_, err = io.ReadFull(stream, buff)
+			assert.NoError(t, err)
+			assert.Equal(t, randomBlockOfData, buff)
+
+			n, err := stream.Write(randomBlockOfData)
+			assert.NoError(t, err)
+			assert.Equal(t, len(randomBlockOfData), n)
+
+			err = stream.Close()
+			assert.NoError(t, err)
+		}()
+
+		// dialer in foreground
+
+		var stream io.ReadWriteCloser
+		for {
+			time.Sleep(50 * time.Millisecond)
+			var err error
+			stream, err = tun1.OpenStream()
+			if err == modules.ErrStreamRejected {
+				continue
+			}
+			assert.NoError(t, err)
+			break
+		}
+
+		n, err := stream.Write(randomBlockOfData)
+		assert.NoError(t, err)
+		assert.Equal(t, len(randomBlockOfData), n)
+
+		buff := make([]byte, len(randomBlockOfData))
+		_, err = io.ReadFull(stream, buff)
+		assert.NoError(t, err)
+		assert.Equal(t, randomBlockOfData, buff)
+
+		n, err = stream.Read(make([]byte, 10))
+		assert.Equal(t, io.EOF, err)
+		assert.Equal(t, n, 0)
+
+		err = stream.Close()
+		assert.NoError(t, err)
+	})
 }

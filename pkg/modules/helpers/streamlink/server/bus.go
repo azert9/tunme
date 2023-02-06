@@ -27,12 +27,14 @@ func (bus *bus) close() {
 	close(bus._closeChan)
 }
 
-func (bus *bus) sendAcceptedStream(stream io.ReadWriteCloser) bool {
+func (bus *bus) sendAcceptedStreamNonBlocking(stream io.ReadWriteCloser) bool {
 
 	select {
 	case bus._acceptedStreamsChan <- stream:
 		return true
 	case _, _ = <-bus._closeChan:
+		return false
+	default:
 		return false
 	}
 }

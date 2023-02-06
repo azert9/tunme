@@ -17,6 +17,7 @@ type ClientHello struct {
 type ControlPacketType byte
 
 const (
-	ControlPacketTypeData          ControlPacketType = 0
-	ControlPacketTypeStreamRequest ControlPacketType = 1
+	ControlPacketTypeData           ControlPacketType = 0
+	ControlPacketTypeStreamRequest  ControlPacketType = 1
+	ControlPacketTypeStreamRejected ControlPacketType = 2
 )

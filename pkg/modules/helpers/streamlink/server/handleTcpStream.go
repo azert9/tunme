@@ -7,6 +7,20 @@ import (
 	"io"
 )
 
+func _handleReceivedDataStream(stream io.ReadWriteCloser, bus *bus) error {
+
+	accepted := bus.sendAcceptedStreamNonBlocking(stream)
+	if accepted {
+		return nil
+	}
+
+	// The stream was not accepted.
+
+	stream.Close()
+
+	return nil
+}
+
 func handleTcpStream(stream io.ReadWriteCloser, bus *bus) error {
 
 	var clientHello protocol.ClientHello
@@ -18,8 +32,7 @@ func handleTcpStream(stream io.ReadWriteCloser, bus *bus) error {
 	case protocol.StreamTypeControl:
 		return handleControlStream(stream, bus)
 	case protocol.StreamTypeConnect:
-		bus.sendAcceptedStream(stream)
-		return nil
+		return _handleReceivedDataStream(stream, bus)
 	case protocol.StreamTypeCallBack:
 		bus.sendCallbackStream(stream)
 		return nil
