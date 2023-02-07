@@ -1,7 +1,7 @@
 package circular_buffer
 
 import (
-	"github.com/azert9/tunme/test/assert"
+	"github.com/stretchr/testify/assert"
 	"io"
 	"sync"
 	"testing"
@@ -22,9 +22,9 @@ func TestWriteLessThanCapacity(t *testing.T) {
 
 	// Then
 
-	assert.NoErr(t, writeErr)
-	assert.Equal(t, buff.Len(), len(sampleData1))
-	assert.Equal(t, writeN, len(sampleData1))
+	assert.NoError(t, writeErr)
+	assert.Equal(t, len(sampleData1), buff.Len())
+	assert.Equal(t, len(sampleData1), writeN)
 }
 
 func TestReadAvailable(t *testing.T) {
@@ -41,9 +41,9 @@ func TestReadAvailable(t *testing.T) {
 
 	// Then
 
-	assert.NoErr(t, err)
+	assert.NoError(t, err)
 
-	assert.SlicesEqual(t, readBuff[:n], sampleData1)
+	assert.Equal(t, sampleData1, readBuff[:n])
 }
 
 func TestPeekAvailable(t *testing.T) {
@@ -60,9 +60,9 @@ func TestPeekAvailable(t *testing.T) {
 
 	// Then
 
-	assert.NoErr(t, err)
+	assert.NoError(t, err)
 
-	assert.SlicesEqual(t, readBuff[:n], sampleData1)
+	assert.Equal(t, sampleData1, readBuff[:n])
 }
 
 func TestReadAvailableInTwoChunks(t *testing.T) {
@@ -80,9 +80,9 @@ func TestReadAvailableInTwoChunks(t *testing.T) {
 
 	// Then
 
-	assert.NoErr(t, readErr)
+	assert.NoError(t, readErr)
 
-	assert.SlicesEqual(t, readBuff[:readN], sampleData1[len(sampleData1)/2:])
+	assert.Equal(t, sampleData1[len(sampleData1)/2:], readBuff[:readN])
 }
 
 func TestWriteInTwoChunks(t *testing.T) {
@@ -101,15 +101,15 @@ func TestWriteInTwoChunks(t *testing.T) {
 
 	// Then
 
-	assert.NoErr(t, writeErr)
+	assert.NoError(t, writeErr)
 
-	assert.Equal(t, writeN, len(chunk2))
+	assert.Equal(t, len(chunk2), writeN)
 
 	readBuff := make([]byte, len(sampleData1)*2)
 	n, err := buff.Read(readBuff)
-	assert.NoErr(t, err)
+	assert.NoError(t, err)
 
-	assert.SlicesEqual(t, readBuff[:n], sampleData1)
+	assert.Equal(t, sampleData1, readBuff[:n])
 }
 
 func TestWriteMoreThanCapacity(t *testing.T) {
@@ -129,7 +129,7 @@ func TestWriteMoreThanCapacity(t *testing.T) {
 		t.Fail()
 	}
 
-	assert.Equal(t, n, buff.Capacity())
+	assert.Equal(t, buff.Capacity(), n)
 }
 
 func TestWriteAroundTheBuffer(t *testing.T) {
@@ -146,8 +146,8 @@ func TestWriteAroundTheBuffer(t *testing.T) {
 
 	// Then
 
-	assert.NoErr(t, writeErr)
-	assert.Equal(t, writeN, len(sampleData1))
+	assert.NoError(t, writeErr)
+	assert.Equal(t, len(sampleData1), writeN)
 }
 
 func TestReadAroundTheBuffer(t *testing.T) {
@@ -166,8 +166,8 @@ func TestReadAroundTheBuffer(t *testing.T) {
 
 	// Then
 
-	assert.NoErr(t, readErr)
-	assert.SlicesEqual(t, readBuff[:readN], sampleData1)
+	assert.NoError(t, readErr)
+	assert.Equal(t, sampleData1, readBuff[:readN])
 }
 
 func TestBlockingRead(t *testing.T) {
@@ -194,11 +194,11 @@ func TestBlockingRead(t *testing.T) {
 
 	// Then
 
-	assert.NoErr(t, readErr)
+	assert.NoError(t, readErr)
 
 	assert.NotEqual(t, readN, 0)
 
-	assert.SlicesEqual(t, readBuff[:readN], sampleData1[:readN])
+	assert.Equal(t, sampleData1[:readN], readBuff[:readN])
 }
 
 func TestPeekDoesNotConsumeData(t *testing.T) {
@@ -218,6 +218,6 @@ func TestPeekDoesNotConsumeData(t *testing.T) {
 	// Then
 
 	n, err := io.ReadFull(buff, make([]byte, len(sampleData1)))
-	assert.NoErr(t, err)
-	assert.Equal(t, n, len(sampleData1))
+	assert.NoError(t, err)
+	assert.Equal(t, len(sampleData1), n)
 }
