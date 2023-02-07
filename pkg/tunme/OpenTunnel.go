@@ -2,12 +2,12 @@ package tunme
 
 import (
 	"fmt"
-	"github.com/azert9/tunme/pkg/link"
-	"github.com/azert9/tunme/pkg/link/builtin"
+	"github.com/azert9/tunme/pkg/modules"
+	"github.com/azert9/tunme/pkg/modules/builtin"
 	"strings"
 )
 
-func OpenTunnel(args string) (link.Tunnel, error) {
+func OpenTunnel(args string) (Tunnel, error) {
 
 	argSegments := strings.Split(args, ",")
 
@@ -19,11 +19,11 @@ func OpenTunnel(args string) (link.Tunnel, error) {
 
 	module, found := builtin.Modules.FindModule(moduleName)
 	if !found {
-		return nil, fmt.Errorf("module not found: %s", moduleName)
+		return nil, fmt.Errorf("modules not found: %s", moduleName)
 	}
 
 	var positionalArgs []string
-	var namedArgs []link.NamedArg
+	var namedArgs []modules.NamedArg
 
 	for _, arg := range argSegments {
 
@@ -32,7 +32,7 @@ func OpenTunnel(args string) (link.Tunnel, error) {
 		if sep < 0 {
 			positionalArgs = append(positionalArgs, arg)
 		} else {
-			namedArgs = append(namedArgs, link.NamedArg{arg[:sep], arg[sep+1:]})
+			namedArgs = append(namedArgs, modules.NamedArg{arg[:sep], arg[sep+1:]})
 		}
 	}
 
