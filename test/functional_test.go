@@ -1,7 +1,6 @@
 package test
 
 import (
-	"github.com/azert9/tunme/pkg/modules"
 	"github.com/azert9/tunme/pkg/tunme"
 	"github.com/stretchr/testify/assert"
 	"io"
@@ -9,7 +8,6 @@ import (
 	"os"
 	"sync"
 	"testing"
-	"time"
 )
 
 var randomBlockOfData = makeRandomBlockOfData(10000)
@@ -61,12 +59,6 @@ func tests(t *testing.T, tun1 tunme.Tunnel, tun2 tunme.Tunnel) {
 
 	// TODO
 
-	t.Run("opening a stream when not accepting fails", func(t *testing.T) {
-		_, err := tun1.OpenStream()
-		assert.Error(t, err)
-		assert.Equal(t, modules.ErrStreamRejected, err)
-	})
-
 	t.Run("opening a stream and transferring data", func(t *testing.T) {
 
 		var wg sync.WaitGroup
@@ -96,17 +88,8 @@ func tests(t *testing.T, tun1 tunme.Tunnel, tun2 tunme.Tunnel) {
 
 		// dialer in foreground
 
-		var stream io.ReadWriteCloser
-		for {
-			time.Sleep(50 * time.Millisecond)
-			var err error
-			stream, err = tun1.OpenStream()
-			if err == modules.ErrStreamRejected {
-				continue
-			}
-			assert.NoError(t, err)
-			break
-		}
+		stream, err := tun1.OpenStream()
+		assert.NoError(t, err)
 
 		n, err := stream.Write(randomBlockOfData)
 		assert.NoError(t, err)

@@ -11,35 +11,23 @@ import (
 	"os"
 )
 
-func forwardStreamInBackground(a io.ReadWriter, b io.ReadWriter) {
+func forwardStreamInBackground(a io.ReadWriteCloser, b io.ReadWriteCloser) {
 
 	// TODO: ensure no goroutine is left behind
-	// TODO: close the connections once done
 
 	go func() {
+		defer a.Close()
 		if _, err := io.Copy(a, b); err != nil && err != io.EOF {
 			log.Print(err)
 		}
 	}()
 
 	go func() {
+		defer b.Close()
 		if _, err := io.Copy(b, a); err != nil && err != io.EOF {
 			log.Print(err)
 		}
 	}()
-}
-
-func serverHandleConn(tun modules.Tunnel, conn net.Conn) {
-
-	defer conn.Close()
-
-	tunStream, err := tun.OpenStream()
-	if err != nil {
-		log.Print(err)
-		return
-	}
-
-	forwardStreamInBackground(tunStream, conn)
 }
 
 func doServer(tun modules.Tunnel, address string) error {
@@ -56,7 +44,13 @@ func doServer(tun modules.Tunnel, address string) error {
 			return err
 		}
 
-		serverHandleConn(tun, conn)
+		tunStream, err := tun.OpenStream()
+		if err != nil {
+			conn.Close()
+			return err
+		}
+
+		forwardStreamInBackground(tunStream, conn)
 	}
 }
 
@@ -71,6 +65,7 @@ func doClient(tun modules.Tunnel, address string) error {
 
 		clientConn, err := net.Dial("tcp", address)
 		if err != nil {
+			tunStream.Close()
 			// TODO: temporary error
 			return err
 		}
@@ -101,8 +96,6 @@ func cobraMain(_ *cobra.Command, args []string) {
 	defer tun.Close()
 
 	// TODO: open the tunnel in a loop
-
-	log.Printf("tunnel established")
 
 	if isServer {
 		if err := doServer(tun, address); err != nil {

@@ -30,12 +30,16 @@ func _runControlStreamOnce(dialer Dialer, bus *bus) error {
 		case protocol.ControlPacketTypeData:
 			// TODO
 		case protocol.ControlPacketTypeStreamRequest:
-			if !bus.sendAcceptNonBlocking() {
-				// the stream was not accepted
-				// TODO: concurrency when writing to a control stream
-				if err := binary.Write(stream, binary.BigEndian, protocol.ControlPacketTypeStreamRejected); err != nil {
-					return err
-				}
+			newStream, err := dialer.Dial()
+			if err != nil {
+				log.Print(err)
+			}
+			if err := binary.Write(newStream, binary.BigEndian, protocol.StreamTypeCallBack); err != nil {
+				return err
+			}
+			if !bus.sendStream(newStream) {
+				// the tunnel was closed
+				return nil
 			}
 		}
 	}

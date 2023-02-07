@@ -80,15 +80,6 @@ func (tun *tunnel) AcceptStream() (io.ReadWriteCloser, error) {
 		return nil, fmt.Errorf("tunnel closed") // TODO: proper error
 	}
 
-	// Sending a byte ton confirm that the stream was accepted.
-
-	if _, err := stream.Write([]byte{0}); err != nil {
-		stream.Close()
-		return nil, err
-	}
-
-	//
-
 	return stream, nil
 }
 
@@ -104,10 +95,6 @@ func (tun *tunnel) OpenStream() (io.ReadWriteCloser, error) {
 	stream, ok := tun.bus.receiveCallbackStream()
 	if !ok {
 		return nil, fmt.Errorf("tunnel closed") // TODO: proper error
-	}
-
-	if stream == nil {
-		return nil, modules.ErrStreamRejected
 	}
 
 	return stream, nil
