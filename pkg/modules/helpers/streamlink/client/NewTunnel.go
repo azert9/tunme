@@ -53,19 +53,9 @@ func (tun *tunnel) ReceivePacket(out []byte) (int, error) {
 
 func (tun *tunnel) AcceptStream() (io.ReadWriteCloser, error) {
 
-	ok := tun.bus.receiveAccept()
+	stream, ok := tun.bus.receiveStream()
 	if !ok {
 		return nil, fmt.Errorf("tunnel closed") // TODO: proper error
-	}
-
-	stream, err := tun.dialer.Dial()
-	if err != nil {
-		return nil, err
-	}
-
-	if err := binary.Write(stream, binary.BigEndian, protocol.StreamTypeCallBack); err != nil {
-		stream.Close()
-		return nil, err
 	}
 
 	return stream, nil
@@ -82,19 +72,6 @@ func (tun *tunnel) OpenStream() (io.ReadWriteCloser, error) {
 	if err := binary.Write(conn, binary.BigEndian, streamType); err != nil {
 		return nil, err
 	}
-
-	// The server should send a single byte to confirm that the stream was accepted.
-
-	var buff [1]byte
-	_, err = conn.Read(buff[:])
-	if err != nil {
-		if err == io.EOF {
-			return nil, modules.ErrStreamRejected
-		}
-		return nil, err
-	}
-
-	//
 
 	return conn, nil
 }
