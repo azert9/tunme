@@ -4,10 +4,11 @@ import (
 	"encoding/binary"
 	"fmt"
 	"github.com/azert9/tunme/internal/streamlink/protocol"
+	"github.com/azert9/tunme/pkg/modules"
 	"io"
 )
 
-func handleTcpStream(stream io.ReadWriteCloser, bus *bus) error {
+func (tun *tunnel) handleTcpStream(stream io.ReadWriteCloser) error {
 
 	var clientHello protocol.ClientHello
 	if err := binary.Read(stream, binary.BigEndian, &clientHello); err != nil {
@@ -16,14 +17,22 @@ func handleTcpStream(stream io.ReadWriteCloser, bus *bus) error {
 
 	switch clientHello.StreamType {
 	case protocol.StreamTypeControl:
-		return handleControlStream(stream, bus)
+		tun.handleControlStreamInBackground(stream)
 	case protocol.StreamTypeConnect:
-		bus.sendAcceptedStream(stream)
-		return nil
+		select {
+		case tun.inDataStreamChan <- stream:
+		case <-tun.closeChan:
+			return modules.ErrTunnelClosed
+		}
 	case protocol.StreamTypeCallBack:
-		bus.sendCallbackStream(stream)
-		return nil
+		select {
+		case tun.inCallBackStreamChan <- stream:
+		case <-tun.closeChan:
+			return modules.ErrTunnelClosed
+		}
 	default:
 		return fmt.Errorf("invalid stream type in ClientHello")
 	}
+
+	return nil
 }
