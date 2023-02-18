@@ -17,7 +17,9 @@ func (tun *tunnel) acceptLoop(listener net.Listener) {
 			return listener.Accept()
 		})
 		if err != nil {
-			log.Println(err)
+			if !tun.isClosed.Load() {
+				log.Printf("error accepting connections: %v", err)
+			}
 			break
 		}
 

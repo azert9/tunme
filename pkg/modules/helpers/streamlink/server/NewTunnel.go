@@ -8,12 +8,13 @@ import (
 	"io"
 	"net"
 	"sync"
+	"sync/atomic"
 )
 
 type tunnel struct {
 	listener             net.Listener
-	closeOnce            sync.Once
 	wg                   sync.WaitGroup
+	isClosed             atomic.Bool
 	closeChan            chan struct{}
 	outControlPacketChan chan []byte
 	inDataPacketsChan    chan []byte
@@ -47,25 +48,31 @@ func NewTunnel(listener net.Listener) modules.Tunnel {
 
 func (tun *tunnel) Close() (err error) {
 
-	tun.closeOnce.Do(func() {
+	if tun.isClosed.Swap(true) {
+		return nil
+	}
 
-		close(tun.closeChan)
+	close(tun.closeChan)
 
-		err = tun.listener.Close()
-		if err != nil {
-			return
-		}
+	err = tun.listener.Close()
+	if err != nil {
+		return
+	}
 
-		tun.wg.Wait()
-	})
+	tun.wg.Wait()
 
-	return
+	return nil
 }
 
 func (tun *tunnel) SendPacket(packet []byte) error {
-	// TODO: Send to any control stream, if any available. If none is available, simply return an error.
-	//TODO implement me
-	panic("implement me")
+
+	// TODO: should ensure that the packet channel cannot be used once the tunnel is closed
+	select {
+	case tun.outControlPacketChan <- protocol.BuildDataControlPacket(packet):
+		return nil
+	case <-tun.closeChan:
+		return modules.ErrTunnelClosed
+	}
 }
 
 func (tun *tunnel) ReceivePacket(out []byte) (int, error) {
