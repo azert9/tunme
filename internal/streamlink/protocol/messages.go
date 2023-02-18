@@ -1,5 +1,10 @@
 package protocol
 
+import (
+	"bytes"
+	"encoding/binary"
+)
+
 type StreamType byte
 
 const (
@@ -20,3 +25,22 @@ const (
 	ControlPacketTypeData          ControlPacketType = 0
 	ControlPacketTypeStreamRequest ControlPacketType = 1
 )
+
+func BuildDataControlPacket(data []byte) []byte {
+
+	packet := bytes.NewBuffer(make([]byte, 0, 5+len(data)))
+
+	if err := binary.Write(packet, binary.BigEndian, ControlPacketTypeData); err != nil {
+		panic(err)
+	}
+
+	if err := binary.Write(packet, binary.BigEndian, uint32(len(data))); err != nil {
+		panic(err)
+	}
+
+	if _, err := packet.Write(data); err != nil {
+		panic(err)
+	}
+
+	return packet.Bytes()
+}

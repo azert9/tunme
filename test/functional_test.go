@@ -59,6 +59,19 @@ func tests(t *testing.T, tun1 tunme.Tunnel, tun2 tunme.Tunnel) {
 
 	// TODO
 
+	t.Run("transferring a packet", func(t *testing.T) {
+
+		packet := randomBlockOfData[:1000]
+
+		err := tun1.SendPacket(packet)
+		assert.NoError(t, err)
+
+		recvBuff := make([]byte, len(packet)+10)
+		n, err := tun2.ReceivePacket(recvBuff)
+		assert.NoError(t, err)
+		assert.Equal(t, packet, recvBuff[:n])
+	})
+
 	t.Run("opening a stream and transferring data", func(t *testing.T) {
 
 		var wg sync.WaitGroup

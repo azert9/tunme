@@ -12,26 +12,21 @@ import (
 
 func (tun *tunnel) controlStreamSendLoop(stream io.ReadWriteCloser) error {
 
-	for done := false; !done; {
+	for {
 		select {
 		case packet := <-tun.outControlPacketChan:
 			if _, err := stream.Write(packet); err != nil {
 				// Failure, putting the packet back in the chan for another stream to pick-up.
-				log.Print(err)
 				tun.outControlPacketChan <- packet
-				done = true
+				return err
 			}
 		case <-tun.closeChan:
-			done = true
+			return modules.ErrTunnelClosed
 		}
 	}
-
-	return nil
 }
 
 func (tun *tunnel) controlStreamReceiveDataPacket(stream io.ReadWriteCloser) error {
-
-	defer stream.Close()
 
 	var payloadLen uint32
 	if err := binary.Read(stream, binary.BigEndian, &payloadLen); err != nil {
@@ -87,7 +82,9 @@ func (tun *tunnel) handleControlStreamInBackground(stream io.ReadWriteCloser) {
 	go func() {
 		defer tun.wg.Done()
 		if err := tun.controlStreamSendLoop(stream); err != nil {
-			log.Printf("error in control stream: %v", err)
+			if !tun.isClosed.Load() {
+				log.Printf("error in control stream: %v", err)
+			}
 		}
 	}()
 
@@ -95,7 +92,9 @@ func (tun *tunnel) handleControlStreamInBackground(stream io.ReadWriteCloser) {
 	go func() {
 		defer tun.wg.Done()
 		if err := tun.controlStreamReceiveLoop(stream); err != nil {
-			log.Printf("error in control stream: %v", err)
+			if !tun.isClosed.Load() {
+				log.Printf("error in control stream: %v", err)
+			}
 		}
 	}()
 }
