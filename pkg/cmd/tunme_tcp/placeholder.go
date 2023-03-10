@@ -1,4 +1,4 @@
-//go:build !app_tcp
+//go:build without_tcp_app
 
 package tunme_tcp
 

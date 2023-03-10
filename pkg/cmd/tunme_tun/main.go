@@ -1,4 +1,4 @@
-//go:build app_tun
+//go:build !without_tun_app
 
 package tunme_tun
 

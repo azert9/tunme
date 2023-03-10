@@ -7,11 +7,6 @@ builds:
   - linux
   goarch:
   - amd64
-  tags:
-  - app_cat
-  - app_relay
-  - app_tcp
-  - app_tun
 - id: static
   binary: tunme-static
   env:
@@ -26,10 +21,6 @@ builds:
   - osusergo
   - netgo
   - static_build
-  - app_cat
-  - app_relay
-  - app_tcp
-  - app_tun
 
 checksum:
   name_template: 'checksums.txt'

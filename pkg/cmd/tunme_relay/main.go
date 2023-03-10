@@ -1,4 +1,4 @@
-//go:build app_relay
+//go:build !without_relay_app
 
 package tunme_relay
 

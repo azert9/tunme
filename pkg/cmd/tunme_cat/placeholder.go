@@ -1,4 +1,4 @@
-//go:build !app_cat
+//go:build without_cat_app
 
 package tunme_cat
 
