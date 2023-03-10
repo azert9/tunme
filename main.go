@@ -17,10 +17,10 @@ func main() {
 		Use: os.Args[0],
 	}
 
-	cmd.AddCommand(&tunme_cat.CobraCmd)
-	cmd.AddCommand(&tunme_relay.CobraCmd)
-	cmd.AddCommand(&tunme_tcp.CobraCmd)
-	cmd.AddCommand(&tunme_tun.CobraCmd)
+	tunme_cat.RegisterCmd(&cmd)
+	tunme_relay.RegisterCmd(&cmd)
+	tunme_tcp.RegisterCmd(&cmd)
+	tunme_tun.RegisterCmd(&cmd)
 
 	if err := cmd.Execute(); err != nil {
 		fmt.Println(err)
