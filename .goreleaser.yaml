@@ -1,0 +1,51 @@
+builds:
+- id: default
+  env:
+  - CGO_ENABLED=1
+  goos:
+  - linux
+  goarch:
+  - amd64
+  tags:
+  - app_cat
+  - app_relay
+  - app_tcp
+  - app_tun
+- id: static
+  env:
+  - CGO_ENABLED=1
+  ldflags: -extldflags "-fno-PIC -static"
+  buildmode: pie
+  goos:
+  - linux
+  goarch:
+  - amd64
+  tags:
+  - osusergo
+  - netgo
+  - static_build
+  - app_cat
+  - app_relay
+  - app_tcp
+  - app_tun
+
+archives:
+- format: tar.gz
+  # this name template makes the OS and Arch compatible with the results of uname.
+  name_template: >-
+    {{ .ProjectName }}_
+    {{- title .Os }}_
+    {{- if eq .Arch "amd64" }}x86_64
+    {{- else if eq .Arch "386" }}i386
+    {{- else }}{{ .Arch }}{{ end }}
+    {{- if .Arm }}v{{ .Arm }}{{ end }}
+  # use zip for windows archives
+  format_overrides:
+  - goos: windows
+    format: zip
+
+checksum:
+  name_template: 'checksums.txt'
+
+# yaml-language-server: $schema=https://goreleaser.com/static/schema.json
+# vim: set ts=2 sw=2 tw=0 fo=cnqoj
