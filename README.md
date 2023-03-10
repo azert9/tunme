@@ -4,6 +4,22 @@
 By using a modular approach, `tunme` allows to encapsulate different applications into different communication
 protocols.
 
+## Installation
+
+Using `go install`:
+
+```bash
+go install github.com/azert9/tunme@latest
+```
+
+Using install script:
+
+```bash
+curl https://raw.githubusercontent.com/azert9/tunme/main/install.sh | bash
+```
+
+Or download binaries from the [release page](https://github.com/azert9/tunme/releases/latest).
+
 ## Examples
 
 Create a TCP tunnel between two machines:
