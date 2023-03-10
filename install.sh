@@ -15,7 +15,7 @@ function download {
   fi
 }
 
-download "$bin_dir/tunme" https://github.com/azert9/tunme/releases/download/latest/tunme_0.1.0_linux_amd64
+download "$bin_dir/tunme" https://github.com/azert9/tunme/releases/latest/download/tunme_linux_amd64
 
 chmod +x "$bin_dir/tunme"
 
