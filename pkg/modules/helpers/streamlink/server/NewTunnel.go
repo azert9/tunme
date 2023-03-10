@@ -3,32 +3,44 @@ package server
 import (
 	"bytes"
 	"encoding/binary"
-	"fmt"
 	"github.com/azert9/tunme/internal/streamlink/protocol"
 	"github.com/azert9/tunme/pkg/modules"
 	"io"
 	"net"
 	"sync"
+	"sync/atomic"
 )
 
 type tunnel struct {
-	listener  net.Listener
-	closeOnce sync.Once
-	wg        sync.WaitGroup
-	bus       *bus
+	listener             net.Listener
+	wg                   sync.WaitGroup
+	isClosed             atomic.Bool
+	closeChan            chan struct{}
+	outControlPacketChan chan []byte
+	inDataPacketsChan    chan []byte
+	inDataStreamChan     chan io.ReadWriteCloser
+	inCallBackStreamChan chan io.ReadWriteCloser
 }
 
 func NewTunnel(listener net.Listener) modules.Tunnel {
 
+	// TODO: configure
+	packetBacklog := 16
+	streamBacklog := 16
+
 	tun := &tunnel{
-		listener: listener,
-		bus:      newBus(),
+		listener:             listener,
+		closeChan:            make(chan struct{}),
+		outControlPacketChan: make(chan []byte, 32),
+		inDataPacketsChan:    make(chan []byte, packetBacklog),
+		inDataStreamChan:     make(chan io.ReadWriteCloser, streamBacklog),
+		inCallBackStreamChan: make(chan io.ReadWriteCloser, 32),
 	}
 
 	tun.wg.Add(1)
 	go func() {
 		defer tun.wg.Done()
-		acceptLoop(listener, tun.bus)
+		tun.acceptLoop(listener)
 	}()
 
 	return tun
@@ -36,32 +48,40 @@ func NewTunnel(listener net.Listener) modules.Tunnel {
 
 func (tun *tunnel) Close() (err error) {
 
-	tun.closeOnce.Do(func() {
+	if tun.isClosed.Swap(true) {
+		return nil
+	}
 
-		tun.bus.close()
+	close(tun.closeChan)
 
-		err = tun.listener.Close()
-		if err != nil {
-			return
-		}
+	err = tun.listener.Close()
+	if err != nil {
+		return
+	}
 
-		tun.wg.Wait()
-	})
+	tun.wg.Wait()
 
-	return
+	return nil
 }
 
 func (tun *tunnel) SendPacket(packet []byte) error {
-	// TODO: Send to any control stream, if any available. If none is available, simply return an error.
-	//TODO implement me
-	panic("implement me")
+
+	// TODO: should ensure that the packet channel cannot be used once the tunnel is closed
+	select {
+	case tun.outControlPacketChan <- protocol.BuildDataControlPacket(packet):
+		return nil
+	case <-tun.closeChan:
+		return modules.ErrTunnelClosed
+	}
 }
 
 func (tun *tunnel) ReceivePacket(out []byte) (int, error) {
 
-	packet, ok := tun.bus.receiveReceivedPacket()
-	if !ok {
-		return 0, fmt.Errorf("tunnel closed") // TODO: proper error
+	var packet []byte
+	select {
+	case packet = <-tun.inDataPacketsChan:
+	case <-tun.closeChan:
+		return 0, modules.ErrTunnelClosed
 	}
 
 	copy(out, packet)
@@ -75,12 +95,12 @@ func (tun *tunnel) ReceivePacket(out []byte) (int, error) {
 
 func (tun *tunnel) AcceptStream() (io.ReadWriteCloser, error) {
 
-	stream, ok := tun.bus.receiveAcceptedStream()
-	if !ok {
-		return nil, fmt.Errorf("tunnel closed") // TODO: proper error
+	select {
+	case stream := <-tun.inDataStreamChan:
+		return stream, nil
+	case <-tun.closeChan:
+		return nil, modules.ErrTunnelClosed
 	}
-
-	return stream, nil
 }
 
 func (tun *tunnel) OpenStream() (io.ReadWriteCloser, error) {
@@ -90,12 +110,16 @@ func (tun *tunnel) OpenStream() (io.ReadWriteCloser, error) {
 		return nil, err
 	}
 
-	tun.bus.sendOutControlPacket(controlPacket.Bytes())
-
-	stream, ok := tun.bus.receiveCallbackStream()
-	if !ok {
-		return nil, fmt.Errorf("tunnel closed") // TODO: proper error
+	select {
+	case tun.outControlPacketChan <- controlPacket.Bytes():
+	case <-tun.closeChan:
+		return nil, modules.ErrTunnelClosed
 	}
 
-	return stream, nil
+	select {
+	case stream := <-tun.inCallBackStreamChan:
+		return stream, nil
+	case <-tun.closeChan:
+		return nil, modules.ErrTunnelClosed
+	}
 }

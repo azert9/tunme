@@ -1,7 +1,2 @@
-/.idea
 /tunme
-/tunme-cat
-/tunme-relay
-/tunme-test
-/tunme-tun
-/coverage.*
+/dist/

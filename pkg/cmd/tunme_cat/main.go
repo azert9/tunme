@@ -1,3 +1,5 @@
+//go:build app_cat
+
 package tunme_cat
 
 import (
@@ -72,19 +74,22 @@ func cobraMain(_ *cobra.Command, args []string) {
 	}()
 }
 
-var CobraCmd = cobra.Command{
-	Use:   "cat REMOTE",
-	Short: "Transfer data from standard streams through a tunnel",
-	Run:   cobraMain,
-	Args:  cobra.ExactArgs(1),
-}
-
 var flags struct {
 	Server bool
 	Client bool
 }
 
-func init() {
-	CobraCmd.Flags().BoolVar(&flags.Server, "server", false, "If true, will wait for the remote to initiate the stream.")
-	CobraCmd.Flags().BoolVar(&flags.Client, "client", false, "If true, will initiate the stream.")
+func RegisterCmd(parentCmd *cobra.Command) {
+
+	cmd := cobra.Command{
+		Use:   "cat REMOTE",
+		Short: "Transfer data from standard streams through a tunnel",
+		Run:   cobraMain,
+		Args:  cobra.ExactArgs(1),
+	}
+
+	cmd.Flags().BoolVar(&flags.Server, "server", false, "If true, will wait for the remote to initiate the stream.")
+	cmd.Flags().BoolVar(&flags.Client, "client", false, "If true, will initiate the stream.")
+
+	parentCmd.AddCommand(&cmd)
 }
