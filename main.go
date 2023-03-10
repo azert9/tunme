@@ -17,6 +17,8 @@ func main() {
 		Use: os.Args[0],
 	}
 
+	cmd.CompletionOptions.HiddenDefaultCmd = true
+
 	tunme_cat.RegisterCmd(&cmd)
 	tunme_relay.RegisterCmd(&cmd)
 	tunme_tcp.RegisterCmd(&cmd)
