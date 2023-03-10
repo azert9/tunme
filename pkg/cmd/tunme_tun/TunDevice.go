@@ -1,3 +1,5 @@
+//go:build app_tun
+
 package tunme_tun
 
 import (

@@ -1,3 +1,5 @@
+//go:build app_tun
+
 package tunme_tun
 
 import (
@@ -109,17 +111,20 @@ func cobraMain(_ *cobra.Command, args []string) {
 	}()
 }
 
-var CobraCmd = cobra.Command{
-	Use:   "tun REMOTE",
-	Short: "Create a virtual network interface",
-	Run:   cobraMain,
-	Args:  cobra.ExactArgs(1),
-}
-
 var flags struct {
 	Addresses []string
 }
 
-func init() {
-	CobraCmd.Flags().StringArrayVarP(&flags.Addresses, "address", "a", nil, "Assign an address to the interface. Can be repeated.")
+func RegisterCmd(parentCmd *cobra.Command) {
+
+	cmd := cobra.Command{
+		Use:   "tun REMOTE",
+		Short: "Create a virtual network interface",
+		Run:   cobraMain,
+		Args:  cobra.ExactArgs(1),
+	}
+
+	cmd.Flags().StringArrayVarP(&flags.Addresses, "address", "a", nil, "Assign an address to the interface. Can be repeated.")
+
+	parentCmd.AddCommand(&cmd)
 }

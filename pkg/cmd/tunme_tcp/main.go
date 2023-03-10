@@ -1,3 +1,5 @@
+//go:build app_tcp
+
 package tunme_tcp
 
 import (
@@ -110,9 +112,14 @@ func cobraMain(_ *cobra.Command, args []string) {
 	}
 }
 
-var CobraCmd = cobra.Command{
-	Use:   "tcp listen|connect ADDRESS REMOTE",
-	Short: "Forward a TCP port",
-	Run:   cobraMain,
-	Args:  cobra.ExactArgs(3),
+func RegisterCmd(parentCmd *cobra.Command) {
+
+	cmd := cobra.Command{
+		Use:   "tcp listen|connect ADDRESS REMOTE",
+		Short: "Forward a TCP port",
+		Run:   cobraMain,
+		Args:  cobra.ExactArgs(3),
+	}
+
+	parentCmd.AddCommand(&cmd)
 }

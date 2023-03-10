@@ -1,3 +1,5 @@
+//go:build app_relay
+
 package tunme_relay
 
 import (
@@ -142,9 +144,14 @@ func cobraMain(_ *cobra.Command, args []string) {
 	relay(tun1, tun2)
 }
 
-var CobraCmd = cobra.Command{
-	Use:   "relay REMOTE REMOTE",
-	Short: "Create a relay for tunme clients",
-	Run:   cobraMain,
-	Args:  cobra.ExactArgs(2),
+func RegisterCmd(parentCmd *cobra.Command) {
+
+	cmd := cobra.Command{
+		Use:   "relay REMOTE REMOTE",
+		Short: "Create a relay for tunme clients",
+		Run:   cobraMain,
+		Args:  cobra.ExactArgs(2),
+	}
+
+	parentCmd.AddCommand(&cmd)
 }
