@@ -18,65 +18,85 @@ func closeOrWarn(closer io.Closer) {
 	}
 }
 
+func send(tun tunme.Tunnel) error {
+
+	stream, err := tun.OpenStream()
+	if err != nil {
+		return err
+	}
+	defer stream.Close()
+
+	_, err = io.Copy(stream, os.Stdin)
+	if err != nil && err != io.EOF {
+		return err
+	}
+
+	return nil
+}
+
+func receive(tun tunme.Tunnel) error {
+
+	stream, err := tun.AcceptStream()
+	if err != nil {
+		return err
+	}
+	defer stream.Close()
+
+	_, err = io.Copy(os.Stdout, stream)
+	if err != nil && err != io.EOF {
+		return err
+	}
+
+	return nil
+}
+
 func cobraMain(_ *cobra.Command, args []string) {
 
-	remote := args[0]
-	if flags.Server && flags.Client {
-		fmt.Printf("Error: Cannot act both as a server and as a client.")
-		os.Exit(1)
-	}
-	if !flags.Server && !flags.Client {
-		// TODO
-		panic("hybrid (client and server) mode not implemented")
+	dosSend := true
+	dorReceive := true
+	if flags.Send || flags.Receive {
+		dosSend = flags.Send
+		dorReceive = flags.Receive
 	}
 
-	tunnel, err := tunme.OpenTunnel(remote)
+	remote := args[0]
+
+	tun, err := tunme.OpenTunnel(remote)
 	if err != nil {
 		panic(err)
-	}
-
-	var stream io.ReadWriter
-	if flags.Server {
-		if s, err := tunnel.AcceptStream(); err != nil {
-			panic(err)
-		} else {
-			stream = s
-			defer closeOrWarn(s)
-		}
-	} else {
-		if s, err := tunnel.OpenStream(); err != nil {
-			panic(err)
-		} else {
-			stream = s
-			defer closeOrWarn(s)
-		}
 	}
 
 	var waitGroup sync.WaitGroup
 	defer waitGroup.Wait()
 
-	waitGroup.Add(1)
-	go func() {
-		defer waitGroup.Done()
+	if dosSend {
 
-		if _, err := io.Copy(stream, os.Stdin); err != nil && err != io.EOF {
-			panic(err)
-		}
-	}()
+		waitGroup.Add(1)
+		go func() {
+			defer waitGroup.Done()
 
-	waitGroup.Add(1)
-	go func() {
-		defer waitGroup.Done()
+			if err := send(tun); err != nil {
+				panic(err)
+			}
+		}()
+	}
 
-		if _, err := io.Copy(os.Stdout, stream); err != nil && err != io.EOF {
-			panic(err)
-		}
-	}()
+	if dorReceive {
+
+		waitGroup.Add(1)
+		go func() {
+			defer waitGroup.Done()
+
+			if err := receive(tun); err != nil {
+				panic(err)
+			}
+		}()
+	}
 }
 
 var flags struct {
-	Server bool
-	Client bool
+	Send    bool
+	Receive bool
 }
 
 func RegisterCmd(parentCmd *cobra.Command) {
@@ -84,12 +104,13 @@ func RegisterCmd(parentCmd *cobra.Command) {
 	cmd := cobra.Command{
 		Use:   "cat REMOTE",
 		Short: "Transfer data from standard streams through a tunnel",
+		Long:  "By default, the communication is bidirectional. Use --send and --receive to control this behavior.",
 		Run:   cobraMain,
 		Args:  cobra.ExactArgs(1),
 	}
 
-	cmd.Flags().BoolVar(&flags.Server, "server", false, "If true, will wait for the remote to initiate the stream.")
-	cmd.Flags().BoolVar(&flags.Client, "client", false, "If true, will initiate the stream.")
+	cmd.Flags().BoolVar(&flags.Send, "send", false, "Send data to the peer.")
+	cmd.Flags().BoolVar(&flags.Receive, "receive", false, "Receive data from the peer")
 
 	parentCmd.AddCommand(&cmd)
 }

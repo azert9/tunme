@@ -1,6 +1,7 @@
 package client
 
 import (
+	"context"
 	"encoding/binary"
 	"fmt"
 	"github.com/azert9/tunme/internal/streamlink/protocol"
@@ -98,7 +99,7 @@ func (tun *tunnel) runControlStreamOnce() error {
 	var wg sync.WaitGroup
 	defer wg.Wait()
 
-	stream, err := tun.dialer.Dial()
+	stream, err := tun.sp.getStream(context.Background())
 	if err != nil {
 		return err
 	}

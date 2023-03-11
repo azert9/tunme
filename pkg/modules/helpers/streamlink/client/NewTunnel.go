@@ -1,8 +1,8 @@
 package client
 
 import (
+	"context"
 	"encoding/binary"
-	"github.com/azert9/tunme/internal/streamlink/conngc"
 	"github.com/azert9/tunme/internal/streamlink/protocol"
 	"github.com/azert9/tunme/pkg/modules"
 	"io"
@@ -19,7 +19,7 @@ type streamRequest struct {
 
 type tunnel struct {
 	wg                   sync.WaitGroup
-	dialer               *dialerWrapper
+	sp                   *streamProvider
 	isClosed             atomic.Bool
 	closeChan            chan struct{}
 	outControlPacketChan chan []byte
@@ -30,16 +30,16 @@ type tunnel struct {
 func NewTunnel(dialer Dialer) modules.Tunnel {
 
 	tun := &tunnel{
-		dialer: &dialerWrapper{
-			dialer: dialer,
-			cgc:    conngc.New(),
-		},
+		sp: newStreamProvider(dialer),
 		// TODO: channel sizes
 		closeChan:            make(chan struct{}),
 		outControlPacketChan: make(chan []byte),
 		inDataPacketChan:     make(chan []byte),
 		inStreamRequestChan:  make(chan streamRequest),
 	}
+
+	tun.wg.Add(1)
+	go tun.sp.loop(&tun.wg, tun.closeChan)
 
 	for i := 0; i < 4; i++ {
 		tun.wg.Add(1)
@@ -57,8 +57,6 @@ func (tun *tunnel) Close() error {
 	if tun.isClosed.Swap(true) {
 		return nil
 	}
-
-	tun.dialer.close()
 
 	close(tun.closeChan)
 
@@ -106,7 +104,7 @@ func (tun *tunnel) AcceptStream() (io.ReadWriteCloser, error) {
 
 	streamSetupOk := false
 
-	stream, err := tun.dialer.Dial()
+	stream, err := tun.sp.getStream(context.Background())
 	if err != nil {
 		// TODO: Retry? Send a message?
 		return nil, err
@@ -127,7 +125,7 @@ func (tun *tunnel) AcceptStream() (io.ReadWriteCloser, error) {
 
 func (tun *tunnel) OpenStream() (io.ReadWriteCloser, error) {
 
-	conn, err := tun.dialer.Dial()
+	conn, err := tun.sp.getStream(context.Background())
 	if err != nil {
 		return nil, err
 	}
